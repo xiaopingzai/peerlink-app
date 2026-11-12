@@ -18,14 +18,15 @@ This repository is a derived build fork of the original VoxLink desktop app.
 | | |
 |---|---|
 | Official Website | https://link.voxdev.top/ |
-| VoxLink mod (GitHub) | https://github.com/AUGUHDAR/VoxLink |
+| VoxLink mod (GitHub) | https://github.com/xiaopingzai/peerlink-mc |
+| App source (GitHub) | https://github.com/xiaopingzai/peerlink-app |
 | MC Wiki (mcmod.cn) | https://www.mcmod.cn/class/28295.html |
 | Modrinth | https://modrinth.com/mod/voxlink |
 | CurseForge | https://www.curseforge.com/minecraft/mc-mods/voxlink |
 | QQ Group | https://qm.qq.com/cgi-bin/qm/qr?k=OEkk9L8m8jdFMkbGDhKZs0u2U0azLAPo&jump_from=webapi |
 | Discord | https://discord.gg/XaAFxvzPDS |
 
-Downloads live in [Releases](https://github.com/AUGUHDAR/VoxLink-app/releases) (and the Gitee mirror).
+Downloads live in [Releases](https://github.com/xiaopingzai/peerlink-app/releases).
 
 ---
 
@@ -74,7 +75,7 @@ The CLI build is meant to be embedded: every command answers with a single JSON 
 
 ## Found a bug?
 
-Use the ticket system inside the app — it attaches your connection log automatically, and you can keep replying and retracting your own messages. Or open an issue at `https://github.com/AUGUHDAR/VoxLink-app/issues`.
+Use the ticket system inside the app — it attaches your connection log automatically, and you can keep replying and retracting your own messages. Or open an issue at `https://github.com/xiaopingzai/peerlink-app/issues`.
 
 Please say what your network looks like — home broadband? Campus WiFi? Phone hotspot? — and bring both sides' logs, host and joiner. Without logs I'm just guessing what happened on your end.
 
@@ -106,14 +107,15 @@ VoxLink 的独立桌面客户端，**不需要装模组**。它为模组覆盖�
 | | |
 |---|---|
 | 官网 | https://link.voxdev.top/ |
-| VoxLink 模组（GitHub） | https://github.com/AUGUHDAR/VoxLink |
+| VoxLink 模组（GitHub） | https://github.com/xiaopingzai/peerlink-mc |
+| 应用端源码（GitHub） | https://github.com/xiaopingzai/peerlink-app |
 | MC百科 | https://www.mcmod.cn/class/28295.html |
 | Modrinth | https://modrinth.com/mod/voxlink |
 | CurseForge | https://www.curseforge.com/minecraft/mc-mods/voxlink |
 | QQ群 | https://qm.qq.com/cgi-bin/qm/qr?k=OEkk9L8m8jdFMkbGDhKZs0u2U0azLAPo&jump_from=webapi |
 | Discord | https://discord.gg/XaAFxvzPDS |
 
-下载在 [Releases](https://github.com/AUGUHDAR/VoxLink-app/releases)（Gitee 有同步镜像）。
+下载在 [Releases](https://github.com/xiaopingzai/peerlink-app/releases)。
 
 ---
 
@@ -164,7 +166,7 @@ CLI 版就是为被集成而生的：每条命令回答一行 JSON，建房/加�
 
 ## 遇到 BUG 怎么办
 
-优先用应用内的工单系统——它会自动带上你的连接日志，你可以继续追问、也能撤回自己发的最后一条。或者去 `https://github.com/AUGUHDAR/VoxLink-app/issues` 开 issue。
+优先用应用内的工单系统——它会自动带上你的连接日志，你可以继续追问、也能撤回自己发的最后一条。或者去 `https://github.com/xiaopingzai/peerlink-app/issues` 开 issue。
 
 请说明你们的网络环境——家用宽带？校园网？手机热点？——并带上双方的日志。没有日志我只能猜你们那边发生了什么。
 

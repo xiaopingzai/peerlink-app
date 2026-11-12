@@ -20,12 +20,7 @@
     {
       name: ["voxlink.app.links.github_mod", "GitHub（模组）"],
       desc: ["voxlink.app.links.github_mod_desc", "VoxLink 模组的源码仓库，点个 Star 支持一下 qwq"],
-      url: "https://github.com/AUGUHDAR/VoxLink"
-    },
-    {
-      name: ["voxlink.app.links.gitee_mod", "Gitee（模组）"],
-      desc: ["voxlink.app.links.gitee_mod_desc", "模组源码仓库的国内镜像，克隆更快"],
-      url: "https://gitee.com/AUGUHDAR/VoxLink"
+      url: "https://github.com/xiaopingzai/peerlink-mc"
     },
     {
       name: ["voxlink.links.modrinth", "Modrinth"],
@@ -55,12 +50,7 @@
     {
       name: ["voxlink.app.links.github_app", "GitHub（应用端）"],
       desc: ["voxlink.app.links.github_app_desc", "VoxLink 桌面应用端的源码仓库（就是这个程序本身）"],
-      url: "https://github.com/AUGUHDAR/VoxLink-app"
-    },
-    {
-      name: ["voxlink.app.links.gitee_app", "Gitee（应用端）"],
-      desc: ["voxlink.app.links.gitee_app_desc", "应用端源码仓库的国内镜像"],
-      url: "https://gitee.com/AUGUHDAR/VoxLink-app"
+      url: "https://github.com/xiaopingzai/peerlink-app"
     }
   ];
 

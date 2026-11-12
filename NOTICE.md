@@ -30,4 +30,5 @@
 
 - CI 单测里 `TestGuestConnectViaBridgeBuildsLocalBridge`（`conn_wave_test.go`）对本地回环建桥的时序敏感，在部分 runner 上会在桥接事件落定前读取状态而失败；该用例与引擎源码均未在本分支改动，属上游既有行为。交叉编译探针已拆到独立 `compile` job，不被单测结果拖住。
 - 32 位产物已在本地用 Go 1.26.3 交叉编译核验：`CLI-windows-386` 为 PE32 Intel 80386 控制台程序，`UI-windows-386` 同为 PE32 80386；32 位实机运行未在本机验证。
-- 自动更新探测（`update.go`）仍指向上游仓库 `AUGUHDAR/VoxLink-app`，未改指向本派生仓库。
+- 自动更新探测（`update.go`）已指向本派生仓库 `xiaopingzai/peerlink-app`；不再保留 Gitee 双源竞速（本分支未自建 Gitee 镜像）。
+- 仓库内面向玩家的链接（Release 下载、Issue、相关链接卡片）指向本派生仓库：应用端 `xiaopingzai/peerlink-app`、模组源码 `xiaopingzai/peerlink-mc`；上游 `AUGUHDAR/VoxLink-app` 与 `AUGUHDAR/VoxLink` 仅作为来源归属保留在本 NOTICE 与 README 的「上游与归属」小节。

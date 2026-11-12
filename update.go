@@ -17,18 +17,16 @@ import (
 )
 
 // ============================================================
-// 自动更新：双源（GitHub + Gitee）竞速探测，优先拿到最新版本
+// 自动更新：探测本派生仓库 GitHub Release 最新版本
 // 流程：检查 → 提示 → 下载 → 替换二进制 → 重启
 // ============================================================
 
 const (
-	// 发布仓（应用端独立仓）。两源同一份 release，tag 与资产名一致。
-	updateGHOwner = "AUGUHDAR"
-	updateGHRepo  = "VoxLink-app"
-	updateGiteeOwner = "AUGUHDAR"
-	updateGiteeRepo  = "VoxLink-app"
+	// 发布仓（本派生应用端独立仓）。tag 与资产名以该仓 Release 为准。
+	updateGHOwner = "xiaopingzai"
+	updateGHRepo  = "peerlink-app"
 
-	// 竞速窗口：两源并行请求，先返回且成功的那个胜出
+	// 探测窗口
 	updateHeadTimeout   = 6 * time.Second
 	updateTotalTimeout  = 8 * time.Second
 	updateDownloadTimeout = 30 * time.Minute
@@ -39,7 +37,7 @@ type updateInfo struct {
 	Available   bool   `json:"available"`
 	Version     string `json:"version"`
 	Current     string `json:"current"`
-	Source      string `json:"source"`       // github / gitee
+	Source      string `json:"source"`       // github
 	AssetName   string `json:"assetName"`
 	DownloadURL string `json:"downloadUrl"`
 	Notes       string `json:"notes"`
@@ -147,75 +145,25 @@ func ghProbe(ctx context.Context) (*releaseView, error) {
 	return v, nil
 }
 
-func giteeProbe(ctx context.Context) (*releaseView, error) {
-	url := fmt.Sprintf("https://gitee.com/api/v5/repos/%s/%s/releases/latest", updateGiteeOwner, updateGiteeRepo)
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	req.Header.Set("User-Agent", httpUserAgent)
-	resp, err := updateHTTP.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("gitee status %d", resp.StatusCode)
-	}
-	var raw struct {
-		TagName string `json:"tag_name"`
-		Body    string `json:"body"`
-		Assets  []struct {
-			Name        string `json:"name"`
-			DownloadURL string `json:"browser_download_url"`
-		} `json:"assets"`
-	}
-	if err := json.NewDecoder(io.LimitReader(resp.Body, 4<<20)).Decode(&raw); err != nil {
-		return nil, err
-	}
-	v := &releaseView{Tag: raw.TagName, Notes: raw.Body, Source: "gitee"}
-	for _, a := range raw.Assets {
-		v.Assets = append(v.Assets, releaseAsset{Name: a.Name, URL: a.DownloadURL})
-	}
-	return v, nil
-}
-
 var updateHTTP = &http.Client{Timeout: updateTotalTimeout}
 
-// raceLatest 两源并行，返回最新版本的那一份；同版本优先先返回者。
+// raceLatest 探测 GitHub 发布仓的最新 Release。
 func raceLatest() (*releaseView, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), updateTotalTimeout)
 	defer cancel()
-	ch := make(chan probeResult, 2)
-	go func() { v, e := ghProbe(ctx); ch <- probeResult{v, e} }()
-	go func() { v, e := giteeProbe(ctx); ch <- probeResult{v, e} }()
 
-	var best *releaseView
-	var lastErr error
-	for i := 0; i < 2; i++ {
-		select {
-		case r := <-ch:
-			if r.err != nil {
-				lastErr = r.err
-				continue
-			}
-			if best == nil || versionNewer(r.view.Tag, best.Tag) {
-				best = r.view
-			}
-		case <-ctx.Done():
-			if best == nil {
-				if lastErr != nil {
-					return nil, lastErr
-				}
-				return nil, fmt.Errorf("两个源都超时")
-			}
-			return best, nil
+	ch := make(chan probeResult, 1)
+	go func() { v, e := ghProbe(ctx); ch <- probeResult{v, e} }()
+
+	select {
+	case r := <-ch:
+		if r.err != nil {
+			return nil, r.err
 		}
+		return r.view, nil
+	case <-ctx.Done():
+		return nil, fmt.Errorf("发布源超时")
 	}
-	if best == nil {
-		if lastErr != nil {
-			return nil, lastErr
-		}
-		return nil, fmt.Errorf("无可用的发布源")
-	}
-	return best, nil
 }
 
 // pickAsset 选当前平台/架构对应的 UI 版资产。
