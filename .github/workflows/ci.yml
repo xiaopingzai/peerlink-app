@@ -1,8 +1,12 @@
-# 每次推送的最小验证：CLI 版（纯 Go）三平台交叉编译 + 单测。
+# 每次推送的最小验证：CLI 版（纯 Go）交叉编译 + 单测。
 #
 # 刻意不在这里验 UI 版：UI 要 CGO + 各平台 GTK/WebKit/macOS SDK，
 # 在 ubuntu runner 上"能不能编"取决于 runner 的 CGO 环境，与"代码对不对"混在一起看不清。
 # UI 版的真实构建与验证放在 release.yml（每个平台用自己的 runner）。
+#
+# 两个 job 相互独立：compile 只做交叉编译探针，不被单测结果拖住；
+# 单测里有个别对时序/回环敏感的上游用例，在部分 runner 上可能抖动，
+# 不影响编译产物本身的有效性判断。
 
 name: ci
 
@@ -17,7 +21,26 @@ permissions:
                   # 仓库方（我）拿不到，只能靠这一步自曝。
 
 jobs:
-  check:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: CLI 交叉编译探针（含 Windows 32 位 386）
+        shell: bash
+        run: |
+          for t in windows/amd64 windows/386 linux/amd64 linux/arm64 darwin/arm64; do
+            os=${t%/*}; arch=${t#*/}
+            GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build -trimpath -tags cli -ldflags "-s -w" -o /tmp/probe-$os-$arch .
+            echo "  ok $os/$arch"
+          done
+
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,15 +65,6 @@ jobs:
       - name: 单测（-tags cli）
         shell: bash
         run: go test -count=1 -timeout 240s -tags cli . 2>&1 | tee /tmp/test-cli.log
-
-      - name: CLI 三平台交叉编译
-        shell: bash
-        run: |
-          for t in windows/amd64 windows/386 linux/amd64 linux/arm64 darwin/arm64; do
-            os=${t%/*}; arch=${t#*/}
-            GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build -trimpath -tags cli -ldflags "-s -w" -o /tmp/probe-$os-$arch .
-            echo "  ok $os/$arch"
-          done
 
       # 任一环节挂了就把日志尾巴写成 issue（含失败用例名，便于定位平台差异）
       - name: 失败自曝
@@ -81,4 +95,3 @@ jobs:
           gh issue create --repo "$GITHUB_REPOSITORY" \
             --title "ci: ${GITHUB_SHA:0:7} 在 linux 上失败" \
             --body-file /tmp/report.md || true
-

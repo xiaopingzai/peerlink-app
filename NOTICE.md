@@ -25,3 +25,9 @@
 - README 增加上游归属与许可说明。
 
 除上述流水线配置与文档改动外，其余源码、前端资源与协议实现均沿用上游版本（appVersion 1.0.2）。
+
+## 已知遗留 / Known leftovers
+
+- CI 单测里 `TestGuestConnectViaBridgeBuildsLocalBridge`（`conn_wave_test.go`）对本地回环建桥的时序敏感，在部分 runner 上会在桥接事件落定前读取状态而失败；该用例与引擎源码均未在本分支改动，属上游既有行为。交叉编译探针已拆到独立 `compile` job，不被单测结果拖住。
+- 32 位产物已在本地用 Go 1.26.3 交叉编译核验：`CLI-windows-386` 为 PE32 Intel 80386 控制台程序，`UI-windows-386` 同为 PE32 80386；32 位实机运行未在本机验证。
+- 自动更新探测（`update.go`）仍指向上游仓库 `AUGUHDAR/VoxLink-app`，未改指向本派生仓库。
