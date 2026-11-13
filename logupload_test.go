@@ -233,7 +233,7 @@ func TestLogUploadBuildPayloadGzip(t *testing.T) {
 		t.Fatal("应有载荷")
 	}
 	if len(p) < 2 || p[0] != 0x1f || p[1] != 0x8b { // 服务端魔数判据
-		t.Fatalf("不是 gzip 流: % x", p[:min(2, len(p))])
+		t.Fatalf("不是 gzip 流: % x", p[:loMin(2, len(p))])
 	}
 	gr, err := gzip.NewReader(bytes.NewReader(p))
 	if err != nil {

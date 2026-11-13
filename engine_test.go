@@ -969,7 +969,7 @@ func readFull(t *testing.T, c *rudpConn, want []byte) {
 		t.Fatalf("read: %v", err)
 	}
 	if !bytes.Equal(got, want) {
-		t.Fatalf("data mismatch: got %d bytes prefix %q", len(got), got[:min(16, len(got))])
+		t.Fatalf("data mismatch: got %d bytes prefix %q", len(got), got[:loMin(16, len(got))])
 	}
 }
 

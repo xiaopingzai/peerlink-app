@@ -69,6 +69,10 @@ The app speaks the exact same wire protocol as the mod — same hole punching, s
 
 Multilingual, same 13 languages as the mod: English, Simplified Chinese, Traditional Chinese, Japanese, Korean, French, German, Spanish, Russian, Portuguese (Brasil), Arabic, Classical Chinese (Wenyanwen), Latin.
 
+### Windows 7 / 32-bit legacy
+
+Main-line binaries are built with Go 1.26 and require Windows 10 or later; Go 1.21 dropped Windows 7 support. Windows 7 32-bit users should use the legacy CLI published from the `legacy/win7-cli` branch (built with Go 1.20.14, the last toolchain that targets Win7). The UI build is unavailable on Win7: Wails v2 depends on the WebView2 Runtime, whose 109 release was the last to support Win7.
+
 ## For launcher developers
 
 The CLI build is meant to be embedded: every command answers with a single JSON line, long-running work (creating/joining a room) streams NDJSON events, and `voxlink-cli describe --json` hands you the machine-readable command table, protocol number and capability list so your launcher can check itself before launching. See [docs/cli-integration.md](docs/cli-integration.md).
@@ -159,6 +163,10 @@ CLI 没有对应命令（清单与边界见 `docs/cli-integration.md`）。
 应用端和模组说的是同一套线上协议——打洞、可靠 UDP 传输逐字节一致——所以 1.20.1 的模组房主和 1.21.11 的应用端房主可以互相进房。模组同步内置：房主发布清单，房客进房前拿到差异对比，带真名、真图标和直链下载。
 
 多语言，与模组同源 13 种：English、简体中文、繁體中文、日本語、한국어、Français、Deutsch、Español、Русский、Português (Brasil)、العربية、文言文、拉丁文。
+
+### Windows 7 / 32 位旧版
+
+主线二进制用 Go 1.26 构建，需要 Windows 10 或更高版本；Go 1.21 起已放弃 Windows 7。Win7 32 位用户请使用 `legacy/win7-cli` 分支发布的旧版 CLI（Go 1.20.14 编译，这是最后一个支持 Win7 的工具链大版本）。图形界面版不支持 Win7：Wails v2 依赖 WebView2 Runtime，而 109 版是最后一个支持 Win7 的 Runtime。
 
 ## 给启动器开发者
 

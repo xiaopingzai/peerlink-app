@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/coder/websocket"
+	"nhooyr.io/websocket"
 )
 
 type fakeSignalServer struct {

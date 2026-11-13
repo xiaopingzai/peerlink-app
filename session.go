@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/coder/websocket"
+	"nhooyr.io/websocket"
 )
 
 const (
@@ -737,7 +737,7 @@ func (s *session) wsLoop() error {
 	}()
 
 	// 主动心跳 ping（Java:118-136 clientPing）：发送原生 WebSocket ping 控制帧——
-	// coder/websocket 的 Conn.Ping 走 writeControl(opPing)（conn.go:223→c.ping→
+	// websocket 库的 Conn.Ping 走 writeControl(opPing)（conn.go:223→c.ping→
 	// writeControl），是协议层控制帧而非文本帧；半开连接下数据写仍会"成功"，
 	// 只有主动 ping 收不到 pong 才能暴露。失败即判死、触发重连。
 	// pong 到达计入看门狗锚点（H10，Java:533-544：协议层 ping/pong 也要计入心跳，

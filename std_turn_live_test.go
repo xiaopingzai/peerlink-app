@@ -87,7 +87,7 @@ func TestStdTurnLiveAgainstRealNode(t *testing.T) {
 	got := <-readOne(sess.sock, 6*time.Second)
 	// 回程可能是通道帧（同通道），也可能是 SEND 格式，这里只要求载荷里含标记。
 	if !containsMarker(got, marker) {
-		t.Fatalf("回声没穿过中继回来，收到 %d 字节: %q", len(got), string(got[:min(len(got), 60)]))
+		t.Fatalf("回声没穿过中继回来，收到 %d 字节: %q", len(got), string(got[:loMin(len(got), 60)]))
 	}
 	fmt.Printf("标准 TURN 真节点链路通过：relay=%s 通道=0x4000 标记=%s\n", relay.String(), marker)
 }

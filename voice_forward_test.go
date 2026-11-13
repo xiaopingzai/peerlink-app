@@ -120,7 +120,7 @@ func TestVoiceUplinkAddsDestPortEnvelope(t *testing.T) {
 	}
 	wantPort := []byte{byte(port >> 8), byte(port)}
 	if len(f.Payload) < 2 || f.Payload[0] != wantPort[0] || f.Payload[1] != wantPort[1] {
-		t.Fatalf("信封前 2 字节必须是大端目的端口 %d，得到 %v", port, f.Payload[:min(4, len(f.Payload))])
+		t.Fatalf("信封前 2 字节必须是大端目的端口 %d，得到 %v", port, f.Payload[:loMin(4, len(f.Payload))])
 	}
 	if string(f.Payload[2:]) != "voice-payload" {
 		t.Fatalf("载荷必须原样透传，得到 %q", f.Payload[2:])

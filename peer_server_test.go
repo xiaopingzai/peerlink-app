@@ -106,7 +106,7 @@ func TestPeerInfoTokenGateAndFieldOrder(t *testing.T) {
 	}
 	got := string(body)
 	if !strings.HasPrefix(got, `{"hasRoom":true,"code":"QW4RTY","name":`) {
-		t.Fatalf("字段顺序必须与模组 addProperty 一致（:165-195），得到 %s", got[:min(len(got), 120)])
+		t.Fatalf("字段顺序必须与模组 addProperty 一致（:165-195），得到 %s", got[:loMin(len(got), 120)])
 	}
 	// Gson 默认 HTML-safe 转义：房间名里的 = 要写成转义形态
 	if !strings.Contains(got, `测试\u003d房间`) {

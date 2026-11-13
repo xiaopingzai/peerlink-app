@@ -1,0 +1,86 @@
+# Win7 兼容 CLI 构建（legacy/win7-cli 分支专用）
+#
+# 背景：Go 1.21 起官方不再支持 Windows 7，最后一个能产出 Win7 可运行二进制的
+# 工具链大版本是 Go 1.20.x。现代主线（go 1.26 + Wails v2）的二进制无法在 Win7
+# 启动，因此 Win7 产物由本工作流用 go1.20.14 单独交叉编译。
+#
+# 范围（如实说明）：
+# - 只出 CLI 命令行版（纯 Go、CGO_ENABLED=0）。UI 版基于 Wails v2 + WebView2，
+#   WebView2 Runtime 109 之后已放弃 Win7，本栈无法在 Win7 提供图形界面。
+# - 产物为 windows/386（32 位）。CI 只能做编译与架构级核验（PE32 80386），
+#   未在真实 Win7 机器上实机运行过。
+# - 分支推送：上传 Actions 产物；打 tag `legacy-win7-*`：发布到对应 Release。
+
+name: legacy-win7
+
+on:
+  push:
+    branches: [legacy/win7-cli]
+    tags:
+      - 'legacy-win7-*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.20.14'
+          cache: true
+
+      - name: 编译 Win7 32 位 CLI（windows/386）
+        env:
+          GOOS: windows
+          GOARCH: 386
+          CGO_ENABLED: 0
+        run: |
+          go version
+          mkdir -p dist
+          OUT="dist/VoxLink-CLI-windows-386.exe"
+          go build -trimpath -tags cli -ldflags "-s -w" -o "$OUT" .
+          ls -la "$OUT"
+          # 架构核验：必须是 PE32 / Intel 80386，防止交叉走错架构静默发包。
+          file "$OUT"
+          file "$OUT" | grep -q '80386' || { echo "::error::产物不是 32 位 80386"; exit 1; }
+          echo "ARTIFACT=$OUT" >> "$GITHUB_ENV"
+
+      - name: UPX 压缩（压不动则保留未压缩产物）
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq upx-ucl
+          if upx --best --lzma "$ARTIFACT"; then
+            echo "UPX=已压缩（--best --lzma）" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "UPX 不适用，重建一份未压缩产物" >> "$GITHUB_STEP_SUMMARY"
+            GOOS=windows GOARCH=386 CGO_ENABLED=0 go build -trimpath -tags cli -ldflags "-s -w" -o "$ARTIFACT" .
+          fi
+          ls -la "$ARTIFACT"
+
+      - name: 校验和
+        run: |
+          cd dist && sha256sum VoxLink-CLI-windows-386.exe > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: legacy-win7-cli-386
+          path: dist/*
+
+      - name: 发布 Legacy Release（仅 tag 触发）
+        if: startsWith(github.ref, 'refs/tags/legacy-win7-')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Win7 legacy CLI — 32-bit (Go 1.20.14)
+          files: dist/*
+          body: |
+            面向 Windows 7 32 位的命令行版（CLI）产物，由 Go 1.20.14（最后一个支持 Win7 的工具链大版本）交叉编译。
+
+            - 产物：`VoxLink-CLI-windows-386.exe`（PE32 / Intel 80386），校验和见 `SHA256SUMS.txt`。
+            - 仅 CLI：图形界面版（UI / Wails + WebView2）不支持 Win7（WebView2 Runtime 109 之后已放弃 Win7）。
+            - 核验范围：CI 完成编译与 PE 架构核验；未在真实 Win7 机器上实机运行，如在老系统上启动异常请反馈。
+            - 源码在 `legacy/win7-cli` 分支：go 1.20，websocket 库为 nhooyr.io/websocket v1.8.4。
