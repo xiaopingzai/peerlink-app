@@ -71,7 +71,7 @@ Multilingual, same 13 languages as the mod: English, Simplified Chinese, Traditi
 
 ### Windows 7 / 32-bit legacy
 
-Main-line binaries require Windows 10 or later (Go 1.21 dropped Windows 7). A Windows 7 32-bit CLI build is published separately as the [`legacy-win7-1.0.2`](https://github.com/xiaopingzai/peerlink-app/releases/tag/legacy-win7-1.0.2) release, built with Go 1.20.14 from the `legacy/win7-cli` branch. The UI build does not support Win7 (WebView2 Runtime 109 was the last to support it).
+Main-line binaries require Windows 10 or later (Go 1.21 dropped Windows 7). The `legacy/win7-cli` branch publishes separate Windows 7 32-bit builds with Go 1.20.14 (last toolchain targeting Win7): a CLI build and an experimental GUI on the downgraded Wails v2.6.0 / go-webview2 v1.0.10 stack. The GUI needs the WebView2 Runtime 109 (last Win7-capable runtime) pre-installed; drag-and-drop is unavailable on that old stack. See the [`legacy-win7-1.0.2`](https://github.com/xiaopingzai/peerlink-app/releases/tag/legacy-win7-1.0.2) release. Neither legacy build has been run on a real Win7 machine.
 
 ## For launcher developers
 
@@ -166,7 +166,7 @@ CLI 没有对应命令（清单与边界见 `docs/cli-integration.md`）。
 
 ### Windows 7 / 32 位旧版
 
-主线二进制需要 Windows 10 或更高版本（Go 1.21 起放弃 Windows 7）。Win7 32 位命令行版单独发布在 [`legacy-win7-1.0.2`](https://github.com/xiaopingzai/peerlink-app/releases/tag/legacy-win7-1.0.2) Release，由 `legacy/win7-cli` 分支用 Go 1.20.14 编译。图形界面版不支持 Win7（WebView2 Runtime 109 是最后一个支持 Win7 的版本）。
+主线二进制需要 Windows 10 或更高版本（Go 1.21 起放弃 Windows 7）。`legacy/win7-cli` 分支用 Go 1.20.14（最后一个支持 Win7 的工具链大版本）单独发布 Win7 32 位产物：命令行版，以及降级到旧栈 Wails v2.6.0 / go-webview2 v1.0.10 的实验性图形界面版。GUI 必须预装 WebView2 Runtime 109（最后一个支持 Win7 的运行时），旧栈不支持文件拖放。见 [`legacy-win7-1.0.2`](https://github.com/xiaopingzai/peerlink-app/releases/tag/legacy-win7-1.0.2) Release；两个旧版产物均未在真实 Win7 机器上实机运行。
 
 ## 给启动器开发者
 
