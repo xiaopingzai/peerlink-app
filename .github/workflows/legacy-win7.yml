@@ -45,9 +45,10 @@ jobs:
           OUT="dist/VoxLink-CLI-windows-386.exe"
           go build -trimpath -tags cli -ldflags "-s -w" -o "$OUT" .
           ls -la "$OUT"
-          # 架构核验：必须是 PE32 / Intel 80386，防止交叉走错架构静默发包。
+          # 架构核验：必须是 PE32 / 32 位 x86（不同 file 版本写作 i386 或 80386），
+          # 防止交叉走错架构静默发包。
           file "$OUT"
-          file "$OUT" | grep -q '80386' || { echo "::error::产物不是 32 位 80386"; exit 1; }
+          file "$OUT" | grep -Eq 'PE32.*(i386|80386)' || { echo "::error::产物不是 32 位 x86 (i386/80386)"; exit 1; }
           echo "ARTIFACT=$OUT" >> "$GITHUB_ENV"
 
       - name: UPX 压缩（压不动则保留未压缩产物）
