@@ -392,7 +392,7 @@ func (s *session) httpPollLoop(maxWait time.Duration) bool {
 		}
 		if failed {
 			// 连续失败逐步退避（1s→2s→4s…上限 10s），避免网络全断时空转打服务端
-			interval = httpPollInterval << min(s.pollFails-1, 3)
+			interval = httpPollInterval << loMin(s.pollFails-1, 3)
 			if interval > 10*time.Second {
 				interval = 10 * time.Second
 			}

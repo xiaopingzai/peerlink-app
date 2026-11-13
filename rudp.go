@@ -1152,7 +1152,7 @@ func (c *rudpConn) processAck(ack uint32) {
 
 	// 救援完成：累计 ack 越过救援段末尾 = 整段已被接收，停止救援重传
 	if len(c.rescue) > 0 && c.rescueLastSeq >= 0 && seqAfter(ack, uint32(c.rescueLastSeq)) {
-		clear(c.rescue)
+		clearMap(c.rescue)
 		c.rlog("info", "rescue queue fully acked, stop rescue retransmit")
 	}
 
@@ -1393,9 +1393,9 @@ func (c *rudpConn) retransmitCheck() {
 		return
 	}
 
-	maxRetrans := 24000 / max(c.rtoMs, rudpRtoMinMs)
-	maxRetrans = min(maxRetrans, 120)
-	maxRetrans = max(maxRetrans, 10)
+	maxRetrans := 24000 / loMax(c.rtoMs, rudpRtoMinMs)
+	maxRetrans = loMin(maxRetrans, 120)
+	maxRetrans = loMax(maxRetrans, 10)
 
 	// 熔断锚点：本段连续重传期间只要收到过对端任何包（lastRecv 前移）就整体复位，
 	// 只有全程零收包的死路径才会持续累积轮次
@@ -1406,7 +1406,7 @@ func (c *rudpConn) retransmitCheck() {
 
 	didRetransmit := false
 	for seq, pp := range c.pending {
-		backoff := time.Duration(c.rtoMs+min(pp.retries, 3)*rudpBackoffMs) * time.Millisecond
+		backoff := time.Duration(c.rtoMs+loMin(pp.retries, 3)*rudpBackoffMs) * time.Millisecond
 		if now.Sub(pp.sendTime) <= backoff {
 			continue
 		}
@@ -1427,7 +1427,7 @@ func (c *rudpConn) retransmitCheck() {
 			c.rlog("warn", "Peer unresponsive (%dms no rx, %d retransmits), rescuing %d pending packets",
 				silenceMs, c.deadPeerRounds, len(c.pending))
 			// 熔断清窗但不丢数据：积压整体转入救援队列
-			clear(c.rescue)
+			clearMap(c.rescue)
 			for seq, pp := range c.pending {
 				c.rescue[seq] = pp
 			}
@@ -1436,7 +1436,7 @@ func (c *rudpConn) retransmitCheck() {
 			c.rescueLastResend = 0
 			// 清空后必须把基序号推进到 nextSeq，否则 writeChunk 的窗口判定永远阻塞，
 			// 写侧 30s 后必然 transport stuck
-			clear(c.pending)
+			clearMap(c.pending)
 			c.oldestUnacked = c.nextSeq
 			c.failures = 0
 			c.dupAckCount = 0

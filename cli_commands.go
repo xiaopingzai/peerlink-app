@@ -211,7 +211,7 @@ var cliCommands = []cliCommand{
 
 // lookupCommand 用最长前缀匹配 "域 动作"，返回剩余参数。
 func lookupCommand(args []string) (*cliCommand, []string, error) {
-	two := strings.Join(args[:min(2, len(args))], " ")
+	two := strings.Join(args[:loMin(2, len(args))], " ")
 	one := args[0]
 	for i := range cliCommands {
 		c := &cliCommands[i]

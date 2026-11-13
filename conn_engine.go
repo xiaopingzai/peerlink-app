@@ -1182,7 +1182,7 @@ func (e *connEngine) guestSpawnExtraPunchers(ip string, ports []int) {
 	if sameCgnat {
 		maxExtraCap = 12
 	}
-	maxExtra := min(len(ports), maxExtraCap)
+	maxExtra := loMin(len(ports), maxExtraCap)
 	for i := 1; i < maxExtra; i++ {
 		key := fmt.Sprintf("joiner_extra_%d", i)
 		target := &net.UDPAddr{IP: net.ParseIP(ip), Port: ports[i]}

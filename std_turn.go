@@ -301,7 +301,7 @@ func stdTurnAllocate(host string, port int, username, password string, timeoutMs
 		probe := newStdTurnMsg(stdTurnMtAllocateReq)
 		probe.putUint32(stdTurnAtRequestedTrans, stdTurnTransportUDP<<24)
 		probe.putStr(stdTurnAtSoftware, "voxlink")
-		challenge = stdTurnTransact(tmp, probe, nil, min(budget, stdTurnProbeRoundBudget))
+		challenge = stdTurnTransact(tmp, probe, nil, loMin(budget, stdTurnProbeRoundBudget))
 	}
 	if challenge == nil || challenge.typ != stdTurnMtAllocateErr || challenge.errorCode != 401 {
 		_ = sock.Close()

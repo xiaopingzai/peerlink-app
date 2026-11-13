@@ -944,7 +944,7 @@ func (b *relayBridge) stopAllRelays() {
 		s.stop()
 	}
 	b.mu.Lock()
-	clear(b.active)
+	clearMap(b.active)
 	b.mu.Unlock()
 }
 
