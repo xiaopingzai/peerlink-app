@@ -71,7 +71,7 @@ Multilingual, same 13 languages as the mod: English, Simplified Chinese, Traditi
 
 ### Windows 7 / 32-bit legacy
 
-Main-line binaries are built with Go 1.26 and require Windows 10 or later; Go 1.21 dropped Windows 7 support. Windows 7 32-bit users should use the legacy CLI published from the `legacy/win7-cli` branch (built with Go 1.20.14, the last toolchain that targets Win7). The UI build is unavailable on Win7: Wails v2 depends on the WebView2 Runtime, whose 109 release was the last to support Win7.
+Main-line binaries are built with Go 1.26 and require Windows 10 or later; Go 1.21 dropped Windows 7 support. Windows 7 32-bit users get legacy builds from the `legacy/win7-cli` branch (Go 1.20.14, the last toolchain that targets Win7): a CLI build and an experimental GUI build on the downgraded Wails v2.6.0 / go-webview2 v1.0.10 stack. The GUI requires the **WebView2 Runtime 109** (last Win7-capable runtime) pre-installed through an offline package; file drag-and-drop is unavailable on this old stack. Neither legacy build has been run on a real Win7 machine.
 
 ## For launcher developers
 
@@ -166,7 +166,7 @@ CLI 没有对应命令（清单与边界见 `docs/cli-integration.md`）。
 
 ### Windows 7 / 32 位旧版
 
-主线二进制用 Go 1.26 构建，需要 Windows 10 或更高版本；Go 1.21 起已放弃 Windows 7。Win7 32 位用户请使用 `legacy/win7-cli` 分支发布的旧版 CLI（Go 1.20.14 编译，这是最后一个支持 Win7 的工具链大版本）。图形界面版不支持 Win7：Wails v2 依赖 WebView2 Runtime，而 109 版是最后一个支持 Win7 的 Runtime。
+主线二进制用 Go 1.26 构建，需要 Windows 10 或更高版本；Go 1.21 起已放弃 Windows 7。Win7 32 位用户使用 `legacy/win7-cli` 分支发布的旧版产物（Go 1.20.14，最后一个支持 Win7 的工具链大版本）：命令行版，以及降级到旧栈 Wails v2.6.0 / go-webview2 v1.0.10 的实验性图形界面版。GUI 必须**预装 WebView2 Runtime 109**（最后一个支持 Win7 的运行时，用离线安装包部署）；旧栈不支持文件拖放。两个旧版产物都未在真实 Win7 机器上实机运行过。
 
 ## 给启动器开发者
 

@@ -1,12 +1,14 @@
-# Win7 兼容 CLI 构建（legacy/win7-cli 分支专用）
+# Win7 兼容构建（legacy/win7-cli 分支专用）
 #
 # 背景：Go 1.21 起官方不再支持 Windows 7，最后一个能产出 Win7 可运行二进制的
-# 工具链大版本是 Go 1.20.x。现代主线（go 1.26 + Wails v2）的二进制无法在 Win7
+# 工具链大版本是 Go 1.20.x。现代主线（go 1.26 + Wails v2.15）的二进制无法在 Win7
 # 启动，因此 Win7 产物由本工作流用 go1.20.14 单独交叉编译。
 #
 # 范围（如实说明）：
-# - 只出 CLI 命令行版（纯 Go、CGO_ENABLED=0）。UI 版基于 Wails v2 + WebView2，
-#   WebView2 Runtime 109 之后已放弃 Win7，本栈无法在 Win7 提供图形界面。
+# - CLI：纯 Go、CGO_ENABLED=0，UPX 压缩。
+# - GUI：降级到旧栈 Wails v2.6.0 + go-webview2 v1.0.10（Runtime 109 时代），
+#   交叉编译 windows/386。目标机器必须预装 WebView2 Runtime 109（最后一个支持
+#   Win7 的运行时，需离线安装包）；旧栈没有原生拖拽，模组目录只能用对话框选择。
 # - 产物为 windows/386（32 位）。CI 只能做编译与架构级核验（PE32 80386），
 #   未在真实 Win7 机器上实机运行过。
 # - 分支推送：上传 Actions 产物；打 tag `legacy-win7-*`：发布到对应 Release。
@@ -48,27 +50,40 @@ jobs:
           # 架构核验：必须是 PE32 / 32 位 x86（不同 file 版本写作 i386 或 80386），
           # 防止交叉走错架构静默发包。
           file "$OUT"
-          file "$OUT" | grep -Eq 'PE32.*(i386|80386)' || { echo "::error::产物不是 32 位 x86 (i386/80386)"; exit 1; }
-          echo "ARTIFACT=$OUT" >> "$GITHUB_ENV"
+          file "$OUT" | grep -Eq 'PE32.*(i386|80386)' || { echo "::error::CLI 产物不是 32 位 x86 (i386/80386)"; exit 1; }
+          echo "CLI_ARTIFACT=$OUT" >> "$GITHUB_ENV"
 
-      - name: UPX 压缩（压不动则保留未压缩产物）
+      - name: UPX 压缩 CLI（压不动则保留未压缩产物）
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq upx-ucl
-          if upx --best --lzma "$ARTIFACT"; then
-            echo "UPX=已压缩（--best --lzma）" >> "$GITHUB_STEP_SUMMARY"
+          if upx --best --lzma "$CLI_ARTIFACT"; then
+            echo "UPX=CLI 已压缩（--best --lzma）" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "UPX 不适用，重建一份未压缩产物" >> "$GITHUB_STEP_SUMMARY"
-            GOOS=windows GOARCH=386 CGO_ENABLED=0 go build -trimpath -tags cli -ldflags "-s -w" -o "$ARTIFACT" .
+            echo "UPX 不适用，重建一份未压缩 CLI 产物" >> "$GITHUB_STEP_SUMMARY"
+            GOOS=windows GOARCH=386 CGO_ENABLED=0 go build -trimpath -tags cli -ldflags "-s -w" -o "$CLI_ARTIFACT" .
           fi
-          ls -la "$ARTIFACT"
+          ls -la "$CLI_ARTIFACT"
+
+      - name: 编译 Win7 32 位 GUI（旧 Wails 栈，windows/386）
+        env:
+          GOOS: windows
+          GOARCH: 386
+          CGO_ENABLED: 0
+        run: |
+          OUT="dist/VoxLink-UI-windows-386.exe"
+          go build -trimpath -tags "desktop,production" -ldflags "-s -w -H windowsgui" -o "$OUT" .
+          ls -la "$OUT"
+          file "$OUT"
+          file "$OUT" | grep -Eq 'PE32.*(i386|80386)' || { echo "::error::GUI 产物不是 32 位 x86 (i386/80386)"; exit 1; }
+          echo "UI_ARTIFACT=$OUT" >> "$GITHUB_ENV"
 
       - name: 校验和
         run: |
-          cd dist && sha256sum VoxLink-CLI-windows-386.exe > SHA256SUMS.txt && cat SHA256SUMS.txt
+          cd dist && sha256sum VoxLink-CLI-windows-386.exe VoxLink-UI-windows-386.exe > SHA256SUMS.txt && cat SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: legacy-win7-cli-386
+          name: legacy-win7-386
           path: dist/*
 
       - name: 发布 Legacy Release（仅 tag 触发）
@@ -76,12 +91,20 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: Win7 legacy CLI — 32-bit (Go 1.20.14)
+          name: Win7 legacy — 32-bit (Go 1.20.14, Wails v2.6 旧栈)
           files: dist/*
           body: |
-            面向 Windows 7 32 位的命令行版（CLI）产物，由 Go 1.20.14（最后一个支持 Win7 的工具链大版本）交叉编译。
+            面向 Windows 7 32 位的产物，由 Go 1.20.14（最后一个支持 Win7 的工具链大版本）交叉编译。
 
-            - 产物：`VoxLink-CLI-windows-386.exe`（PE32 / Intel 80386），校验和见 `SHA256SUMS.txt`。
-            - 仅 CLI：图形界面版（UI / Wails + WebView2）不支持 Win7（WebView2 Runtime 109 之后已放弃 Win7）。
-            - 核验范围：CI 完成编译与 PE 架构核验；未在真实 Win7 机器上实机运行，如在老系统上启动异常请反馈。
+            **产物**
+            - `VoxLink-CLI-windows-386.exe`：命令行版（PE32 / Intel 80386，UPX 压缩）。
+            - `VoxLink-UI-windows-386.exe`：图形界面版（PE32 GUI / Intel 80386），旧栈 Wails v2.6.0 + go-webview2 v1.0.10。
+            - 校验和见 `SHA256SUMS.txt`。
+
+            **GUI 使用前提**
+            - 目标机器必须预装 **WebView2 Runtime 109**（最后一个支持 Win7 的运行时；110 及以上已放弃 Win7），需用离线安装包安装，程序不会在 Win7 上自动下载运行时。
+            - 旧栈没有原生文件拖拽：模组目录请通过界面里的选择对话框指定。
+
+            **核验范围**
+            - CI 完成编译与 PE 架构核验；未在真实 Win7 机器上实机运行，启动、界面渲染与联机流程如在老系统上异常请反馈。
             - 源码在 `legacy/win7-cli` 分支：go 1.20，websocket 库为 nhooyr.io/websocket v1.8.4。

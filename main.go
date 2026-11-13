@@ -31,12 +31,8 @@ func main() {
 		OnStartup:   app.startup,
 		OnShutdown:  app.shutdown,
 		Bind:        []interface{}{app},
-		// 拖放必须走 Wails 原生通道：WebView2 里 dataTransfer 只有 File 对象、拿不到绝对路径，
-		// 这是"拖进来没反应"的根因。DisableWebViewDrop 顺带堵掉"拖到别处当成打开文件"的空窗口。
-		DragAndDrop: &options.DragAndDrop{
-			EnableFileDrop:     true,
-			DisableWebViewDrop: true,
-		},
+		// legacy 旧栈（Wails v2.6）没有 DragAndDrop 选项：模组目录只能用选择对话框，
+		// 不支持把文件拖进窗口。主线 Win10+ 版本保留原生拖放。
 		Windows: &windows.Options{
 			Theme: windows.SystemDefault,
 		},
