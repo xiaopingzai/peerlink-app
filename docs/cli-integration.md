@@ -1,4 +1,4 @@
-# VoxLink CLI 调用说明
+# PeerLink CLI 调用说明（派生自 VoxLink by AUGUHDAR）
 
 > 面向启动器与脚本作者。CLI 版与 UI 版**编译同一份联机引擎**（`conn_engine.go`、`punch*.go`、
 > `stun*.go`、`rudp*.go`、`relay.go`、`bridge.go`、`std_turn.go`、`auto_relay.go`、`session.go`
@@ -16,10 +16,10 @@
 ## 基本形态
 
 ```
-voxlink-cli <域> <动作> [参数]        # 一次性命令，stdout 输出一行 JSON 后退出
-voxlink-cli <域> <动作> --events ndjson  # 长任务：先一行结果，随后逐行推送事件流
-voxlink-cli describe --json          # 机器可读：命令表 + 协议号 + 能力清单 + 常量
-voxlink-cli --version                # 版本与协议号
+peerlink-cli <域> <动作> [参数]        # 一次性命令，stdout 输出一行 JSON 后退出
+peerlink-cli <域> <动作> --events ndjson  # 长任务：先一行结果，随后逐行推送事件流
+peerlink-cli describe --json          # 机器可读：命令表 + 协议号 + 能力清单 + 常量
+peerlink-cli --version                # 版本与协议号
 ```
 
 ## 统一信封
@@ -31,7 +31,7 @@ voxlink-cli --version                # 版本与协议号
 {"ok":false,"error":"ROOM_NOT_FOUND","code":"ROOM_NOT_FOUND","message":"房号不存在或密码不对"}
 ```
 
-`code` 是机器可读错误码（与 VoxLink 服务端同源），启动器按码分支即可，`message` 是按 `--lang` 渲染的人话，不要拿去匹配。
+`code` 是机器可读错误码（与上游 VoxLink 服务端同源），启动器按码分支即可，`message` 是按 `--lang` 渲染的人话，不要拿去匹配。
 
 ## 事件流
 
@@ -48,9 +48,9 @@ voxlink-cli --version                # 版本与协议号
 ## 典型集成流程
 
 ```
-voxlink-cli room create --name "我的服" --port 25565 --events ndjson
-voxlink-cli room join --code AB12CD --events ndjson
-voxlink-cli room leave
+peerlink-cli room create --name "我的服" --port 25565 --events ndjson
+peerlink-cli room join --code AB12CD --events ndjson
+peerlink-cli room leave
 ```
 
 ## 让别人看出这是你的启动器（--client-tag）
@@ -59,7 +59,7 @@ voxlink-cli room leave
 模组房显示的是 `forge` / `neoforge` 这类加载器名，你的启动器房显示的就是你给的这个词：
 
 ```
-voxlink-cli room create --name "我的服" --port 25565 --client-tag "星光启动器"
+peerlink-cli room create --name "我的服" --port 25565 --client-tag "星光启动器"
 ```
 
 规则（`describe --json` 里也能查到）：
@@ -67,7 +67,7 @@ voxlink-cli room create --name "我的服" --port 25565 --client-tag "星光启�
 - 最长 **10 个字**，中文一个字算一个；超了直接报 `INVALID_PARAMS`，不会静默丢掉。
 - 允许：字母、数字、下划线、连字符、中文、单个空格；大小写不敏感（存的是小写形式）。
 - 引号、尖括号、控制字符会被剔掉，剔完什么都不剩则视为没传。
-- 只想长期固定一个标签：`voxlink-cli settings save --client-tag pcl2`；
+- 只想长期固定一个标签：`peerlink-cli settings save --client-tag pcl2`；
   建房时带 `--client-tag` 则以当次的为准，不影响持久值。
 - 不带这个参数时，应用端房在后台显示为 "APP"（按客户端类型自动标的）。
 
@@ -79,7 +79,7 @@ voxlink-cli room create --name "我的服" --port 25565 --client-tag "星光启�
 |---|---|---|
 | `0` | `{"ok":true,…}` | 正常返回 |
 | `1` | 业务错误：参数值不合法、当前状态做不了这件事、服务端拒绝 | `INVALID_PARAMS`、`NO_SESSION`、`TICKET_NOT_FOUND`、`TICKET_MSG_NOT_FOUND`、`ROOM_NOT_FOUND` |
-| `2` | 用法错误：命令本身不存在或命令行解析失败 | `USAGE`（`voxlink-cli room nope`） |
+| `2` | 用法错误：命令本身不存在或命令行解析失败 | `USAGE`（`peerlink-cli room nope`） |
 
 **别把 `1` 和 `2` 合并处理**：`2` 说明你拼错了命令，升级 CLI 时会静默失效；
 `1` 说明命令是对的、只是这次不该做。两种都要在启动器里显示不同的话术。
@@ -89,9 +89,9 @@ voxlink-cli room create --name "我的服" --port 25565 --client-tag "星光启�
 会话（房号、token、信令连接、打洞状态）**活在那个进程里**，进程之间没有 IPC。所以：
 
 ```bash
-voxlink-cli room create --name 房名 --port 25565            # 打印结果后立刻退出
-voxlink-cli room status                                     # → {"room":null,"state":"idle"}
-voxlink-cli room update --name 新名                          # → NO_SESSION
+peerlink-cli room create --name 房名 --port 25565            # 打印结果后立刻退出
+peerlink-cli room status                                     # → {"room":null,"state":"idle"}
+peerlink-cli room update --name 新名                          # → NO_SESSION
 ```
 
 上面那三条不会报错，但也不会生效——因为每条都开了一个新进程、各自没有会话。

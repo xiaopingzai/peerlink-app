@@ -286,11 +286,11 @@ func knownEvents() []map[string]any {
 }
 
 func printUsage(w io.Writer) {
-	fmt.Fprintln(w, "VoxLink CLI "+appVersion+" — 给启动器集成的无界面联机客户端")
+	fmt.Fprintln(w, "PeerLink CLI "+appVersion+" — 给启动器集成的无界面联机客户端（派生自 VoxLink by AUGUHDAR）")
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, "用法: voxlink-cli <域> <动作> [参数]        一条命令 = 一行 JSON")
-	fmt.Fprintln(w, "      voxlink-cli describe --json      机器可读命令表/协议号/能力清单")
-	fmt.Fprintln(w, "      voxlink-cli --version            版本与协议号")
+	fmt.Fprintln(w, "用法: peerlink-cli <域> <动作> [参数]        一条命令 = 一行 JSON")
+	fmt.Fprintln(w, "      peerlink-cli describe --json      机器可读命令表/协议号/能力清单")
+	fmt.Fprintln(w, "      peerlink-cli --version            版本与协议号")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "长任务（建房/加房）:")
 	fmt.Fprintln(w, "      --events ndjson  结果行之后持续推事件，直到 SIGINT/SIGTERM 或 --timeout")

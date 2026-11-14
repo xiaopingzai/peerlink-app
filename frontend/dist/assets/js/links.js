@@ -19,22 +19,22 @@
     },
     {
       name: ["voxlink.app.links.github_mod", "GitHub（模组）"],
-      desc: ["voxlink.app.links.github_mod_desc", "VoxLink 模组的源码仓库，点个 Star 支持一下 qwq"],
+      desc: ["voxlink.app.links.github_mod_desc", "PeerLink 模组的源码仓库，点个 Star 支持一下 qwq"],
       url: "https://github.com/xiaopingzai/peerlink-mc"
     },
     {
       name: ["voxlink.links.modrinth", "Modrinth"],
-      desc: ["voxlink.app.links.modrinth_desc", "在 Modrinth 下载 VoxLink 模组"],
-      url: "https://modrinth.com/mod/voxlink"
+      desc: ["voxlink.app.links.modrinth_desc", "在 Modrinth 下载 PeerLink 模组"],
+      url: "https://modrinth.com/mod/peerlink-xiaopingzai/"
     },
     {
       name: ["voxlink.links.curseforge", "CurseForge"],
-      desc: ["voxlink.app.links.curseforge_desc", "在 CurseForge 下载 VoxLink 模组"],
+      desc: ["voxlink.app.links.curseforge_desc", "在 CurseForge 下载 PeerLink 模组"],
       url: "https://www.curseforge.com/minecraft/mc-mods/voxlink"
     },
     {
       name: ["voxlink.links.site", "官网"],
-      desc: ["voxlink.app.links.site_desc", "VoxLink 官方网站，下载与说明都在上面"],
+      desc: ["voxlink.app.links.site_desc", "PeerLink 官方网站，下载与说明都在上面"],
       url: "https://link.voxdev.top/"
     },
     {
@@ -49,7 +49,7 @@
     },
     {
       name: ["voxlink.app.links.github_app", "GitHub（应用端）"],
-      desc: ["voxlink.app.links.github_app_desc", "VoxLink 桌面应用端的源码仓库（就是这个程序本身）"],
+      desc: ["voxlink.app.links.github_app_desc", "PeerLink 桌面应用端的源码仓库（就是这个程序本身）"],
       url: "https://github.com/xiaopingzai/peerlink-app"
     }
   ];

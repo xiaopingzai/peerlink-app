@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>VoxLink</title>
+  <title>PeerLink</title>
   <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
@@ -12,10 +12,10 @@
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-logo">
-          <img src="assets/img/icon.png" alt="VoxLink">
+          <img src="assets/img/icon.png" alt="PeerLink">
         </div>
         <div class="brand-text">
-          <div class="brand-name">VoxLink</div>
+          <div class="brand-name">PeerLink</div>
           <div class="brand-sub" data-i18n="voxlink.app.brand.sub">P2P 联机助手</div>
         </div>
       </div>
@@ -83,7 +83,7 @@
           </div>
           <select class="select" id="lobby-source">
             <option value="" data-i18n="voxlink.app.lobby.src_all">所有来源</option>
-            <option value="voxlink" data-i18n="voxlink.app.lobby.src_voxlink">仅 VoxLink 房</option>
+            <option value="voxlink" data-i18n="voxlink.app.lobby.src_voxlink">仅 PeerLink 房</option>
             <option value="happylink" data-i18n="voxlink.app.lobby.src_happylink">仅 Happy Link 房</option>
           </select>
         </div>
@@ -167,7 +167,7 @@
           </div>
           <div class="field">
             <label class="field-label" for="create-name" data-i18n="voxlink.app.create.name">房间名</label>
-            <input type="text" class="input" id="create-name" placeholder="VoxLink Room" autocomplete="off">
+            <input type="text" class="input" id="create-name" placeholder="PeerLink Room" autocomplete="off">
           </div>
           <div class="field">
             <label class="field-label" for="create-host-port" data-i18n="voxlink.app.create.local_port">本地 MC 端口</label>
@@ -457,7 +457,7 @@
         <header class="page-head">
           <div>
             <h1 class="page-title" data-i18n="voxlink.links.title">相关链接</h1>
-            <p class="page-desc" data-i18n="voxlink.app.links.desc">VoxLink 的官方主页们，点开按钮会在浏览器打开</p>
+            <p class="page-desc" data-i18n="voxlink.app.links.desc">PeerLink 的官方主页们，点开按钮会在浏览器打开</p>
           </div>
         </header>
         <div class="links-grid" id="links-grid"></div>
@@ -468,7 +468,7 @@
         <header class="page-head">
           <div>
             <h1 class="page-title" data-i18n="voxlink.app.nav.settings">设置</h1>
-            <p class="page-desc" data-i18n="voxlink.app.settings.desc">调整 VoxLink 桌面端的参数</p>
+            <p class="page-desc" data-i18n="voxlink.app.settings.desc">调整 PeerLink 桌面端的参数</p>
           </div>
         </header>
 
@@ -530,7 +530,7 @@
             <span class="card-count" id="set-msi-count" data-i18n="voxlink.app.settings.loading">正在读取…</span>
           </div>
           <!-- 说明只讲"这是什么、会影响什么"，操作步骤交给界面本身（准则：降低理解成本） -->
-          <p class="form-hint" data-i18n="voxlink.app.settings.msi_hint">每个实例对应一个 mods 目录。创建房间时，VoxLink 用「当前实例」的 mods 清单帮房客对齐版本。</p>
+          <p class="form-hint" data-i18n="voxlink.app.settings.msi_hint">每个实例对应一个 mods 目录。创建房间时，PeerLink 用「当前实例」的 mods 清单帮房客对齐版本。</p>
 
           <div class="empty empty-sm hidden" id="set-msi-empty">
             <div class="empty-title" data-i18n="voxlink.app.settings.msi_empty_title">还没有实例</div>
@@ -597,8 +597,8 @@
         <div class="card form-card">
           <div class="about-row">
             <div>
-              <div class="field-label" data-i18n="voxlink.app.settings.about">关于 VoxLink</div>
-              <p class="form-hint" data-i18n="voxlink.app.settings.about_desc">VoxLink 应用端，为 Minecraft 联机而生的独立助手 qwq</p>
+              <div class="field-label" data-i18n="voxlink.app.settings.about">关于 PeerLink</div>
+              <p class="form-hint" data-i18n="voxlink.app.settings.about_desc">PeerLink 应用端，为 Minecraft 联机而生的独立助手（派生自 VoxLink by AUGUHDAR）</p>
             </div>
             <span class="pill pill-accent" id="settings-version">v1.1.9-beta</span>
           </div>

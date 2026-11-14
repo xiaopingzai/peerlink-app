@@ -314,7 +314,7 @@ function resolveLoader() {
     var gameVersion = resolveGameVersion();
 
     var req = {
-      name: els.name.value.trim() || "VoxLink Room",
+      name: els.name.value.trim() || "PeerLink Room",
       password: els.pw.value,
       category: category,
       visible: els.visible.checked,

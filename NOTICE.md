@@ -4,6 +4,9 @@
 
 本仓库是在原作者公开的 VoxLink 项目基础上派生（fork）的构建分支，源代码与资源均来自上游，未逐行重写。
 
+- 派生产品名：**PeerLink**（CLI 产物命名 `PeerLink-CLI-*`，UI 产物命名 `PeerLink`）。
+- 上游原名 **VoxLink** 归原作者 **AUGUHDAR** 所有；产品改名不改变上游版权归属，本仓库在所有对外位置保留上述上游链接与署名。
+
 - 应用端上游仓库（original app source）：<https://github.com/AUGUHDAR/VoxLink-app>
 - 模组上游仓库（original open-source repo）：<https://github.com/AUGUHDAR/VoxLink>
 

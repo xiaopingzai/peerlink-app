@@ -70,7 +70,7 @@
     "voxlink.modsync.esc_block_downloading": "下载中无法关闭，请先取消下载。",
     "voxlink.modsync.esc_block_selecting": "请使用返回按钮退出此页面。",
     "voxlink.modsync.disabled_hint": "%s 已安装但被禁用（*.jar.disabled），如需请手动启用",
-    "voxlink.modsync.gate_failed_warn": "[VoxLink] 模组检查失败，已直接加入，请自行确认 Mod 一致",
+    "voxlink.modsync.gate_failed_warn": "[PeerLink] 模组检查失败，已直接加入，请自行确认 Mod 一致",
     "voxlink.modsync.download_cancelled": "已取消下载。",
     "voxlink.modsync.loader_mismatch": "房主加载器 %s 与你 (%s) 不同：mod 无法运行，请安装匹配的加载器",
     "voxlink.logui.modsync_unsupported": "房主未启用模组清单，已跳过检查",

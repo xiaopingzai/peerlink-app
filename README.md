@@ -1,8 +1,8 @@
 ## English
 
-# VoxLink App
+# PeerLink App
 
-The standalone desktop client of VoxLink. **No mod required** — it exists for the Minecraft versions the mod doesn't cover, and for any other game that speaks TCP/UDP over a local port. Play with mod users: rooms are interoperable in both directions.
+The standalone desktop client of PeerLink, derived from VoxLink by AUGUHDAR. **No mod required** — it exists for the Minecraft versions the mod doesn't cover, and for any other game that speaks TCP/UDP over a local port. Play with mod users: rooms are interoperable in both directions.
 
 ## Upstream & attribution
 
@@ -18,10 +18,10 @@ This repository is a derived build fork of the original VoxLink desktop app.
 | | |
 |---|---|
 | Official Website | https://link.voxdev.top/ |
-| VoxLink mod (GitHub) | https://github.com/xiaopingzai/peerlink-mc |
+| PeerLink mod (GitHub) | https://github.com/xiaopingzai/peerlink-mc |
 | App source (GitHub) | https://github.com/xiaopingzai/peerlink-app |
 | MC Wiki (mcmod.cn) | https://www.mcmod.cn/class/28295.html |
-| Modrinth | https://modrinth.com/mod/voxlink |
+| Modrinth | https://modrinth.com/mod/peerlink-xiaopingzai/ |
 | CurseForge | https://www.curseforge.com/minecraft/mc-mods/voxlink |
 | QQ Group | https://qm.qq.com/cgi-bin/qm/qr?k=OEkk9L8m8jdFMkbGDhKZs0u2U0azLAPo&jump_from=webapi |
 | Discord | https://discord.gg/XaAFxvzPDS |
@@ -51,9 +51,9 @@ Rooms created by the mod and rooms created by the app join each other's lobbies,
 
 ## Fallback & relay
 
-When direct punching fails, VoxLink doesn't just give up — and since **1.2.0** it handles this on its own, no buttons to press:
+When direct punching fails, PeerLink doesn't just give up — and since **1.2.0** it handles this on its own, no buttons to press:
 
-- **TURN relay** — a standard RFC 5766 relay node run by VoxLink carries the traffic.
+- **TURN relay** — a standard RFC 5766 relay node run by PeerLink carries the traffic.
 - **Peer relay** — a suitable Cone-NAT player currently online in the lobby forwards your packets. This traffic **never touches the server**, and the relay player barely notices.
 - **Seamless lane change** — a relay that came up but is quietly dead gets detected within seconds and swapped, without dropping the bytes you already sent. After that it goes back to punching.
 
@@ -75,7 +75,7 @@ Main-line binaries require Windows 10 or later (Go 1.21 dropped Windows 7). The 
 
 ## For launcher developers
 
-The CLI build is meant to be embedded: every command answers with a single JSON line, long-running work (creating/joining a room) streams NDJSON events, and `voxlink-cli describe --json` hands you the machine-readable command table, protocol number and capability list so your launcher can check itself before launching. See [docs/cli-integration.md](docs/cli-integration.md).
+The CLI build is meant to be embedded: every command answers with a single JSON line, long-running work (creating/joining a room) streams NDJSON events, and `peerlink-cli describe --json` hands you the machine-readable command table, protocol number and capability list so your launcher can check itself before launching. See [docs/cli-integration.md](docs/cli-integration.md).
 
 ## Found a bug?
 
@@ -93,9 +93,9 @@ Website: `https://link.voxdev.top/`
 
 ## 中文
 
-# VoxLink 应用端
+# PeerLink 应用端
 
-VoxLink 的独立桌面客户端，**不需要装模组**。它为模组覆盖不到的 Minecraft 版本准备，也给别的游戏用——只要它在本地开一个端口。和模组房双向互通，你建房模组玩家能进，模组建房你也能进。
+PeerLink 的独立桌面客户端（派生自 VoxLink by AUGUHDAR），**不需要装模组**。它为模组覆盖不到的 Minecraft 版本准备，也给别的游戏用——只要它在本地开一个端口。和模组房双向互通，你建房模组玩家能进，模组建房你也能进。
 
 ## 上游与归属
 
@@ -111,10 +111,10 @@ VoxLink 的独立桌面客户端，**不需要装模组**。它为模组覆盖�
 | | |
 |---|---|
 | 官网 | https://link.voxdev.top/ |
-| VoxLink 模组（GitHub） | https://github.com/xiaopingzai/peerlink-mc |
+| PeerLink 模组（GitHub） | https://github.com/xiaopingzai/peerlink-mc |
 | 应用端源码（GitHub） | https://github.com/xiaopingzai/peerlink-app |
 | MC百科 | https://www.mcmod.cn/class/28295.html |
-| Modrinth | https://modrinth.com/mod/voxlink |
+| Modrinth | https://modrinth.com/mod/peerlink-xiaopingzai/ |
 | CurseForge | https://www.curseforge.com/minecraft/mc-mods/voxlink |
 | QQ群 | https://qm.qq.com/cgi-bin/qm/qr?k=OEkk9L8m8jdFMkbGDhKZs0u2U0azLAPo&jump_from=webapi |
 | Discord | https://discord.gg/XaAFxvzPDS |
@@ -146,9 +146,9 @@ CLI 没有对应命令（清单与边界见 `docs/cli-integration.md`）。
 
 ## 后备与中继
 
-直连打洞失败时 VoxLink 不会放弃，而且从 **1.2.0** 起这件事它自己判断、自己处理，界面上没有按钮要你点：
+直连打洞失败时 PeerLink 不会放弃，而且从 **1.2.0** 起这件事它自己判断、自己处理，界面上没有按钮要你点：
 
-- **TURN 中继** — 由 VoxLink 自建的标准 RFC 5766 中继节点承载流量。
+- **TURN 中继** — 由 PeerLink 自建的标准 RFC 5766 中继节点承载流量。
 - **玩家中继** — 从当前在线的公开大厅玩家里挑一个网络条件合适的 Cone-NAT 玩家做转发节点。这条流量 **绝不经过服务器**，中继的玩家本身几乎无感知。
 - **无缝换道** — 中继建起来了但其实已经死了的，几秒内会被发现并立刻换到另一条道，已经发出去的数据不丢。两条道都用不了就回头继续打洞。
 
@@ -170,7 +170,7 @@ CLI 没有对应命令（清单与边界见 `docs/cli-integration.md`）。
 
 ## 给启动器开发者
 
-CLI 版就是为被集成而生的：每条命令回答一行 JSON，建房/加房这类长任务用 NDJSON 逐行推事件，`voxlink-cli describe --json` 直接把机器可读的命令表、协议号和能力清单交给你，启动器可以在拉起之前自检。详见 [docs/cli-integration.md](docs/cli-integration.md)。
+CLI 版就是为被集成而生的：每条命令回答一行 JSON，建房/加房这类长任务用 NDJSON 逐行推事件，`peerlink-cli describe --json` 直接把机器可读的命令表、协议号和能力清单交给你，启动器可以在拉起之前自检。详见 [docs/cli-integration.md](docs/cli-integration.md)。
 
 ## 遇到 BUG 怎么办
 

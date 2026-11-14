@@ -129,7 +129,7 @@
         VL.esc(r.clientTag) + "</span>";
     } else if (r.clientType === "app") {
       tags += '<span class="pill pill-app" title="' +
-        VL.esc(VL.t("voxlink.app.room.tag_app_title", "该房间由 VoxLink 应用端创建")) + '">' +
+        VL.esc(VL.t("voxlink.app.room.tag_app_title", "该房间由 PeerLink 应用端创建")) + '">' +
         VL.esc(VL.t("voxlink.app.room.tag_app", "应用端")) + "</span>";
     } else if (r.clientType) {
       tags += '<span class="pill">' + VL.esc(r.clientType) + "</span>";

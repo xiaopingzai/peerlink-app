@@ -1,17 +1,17 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "VoxLink",
-  "outputfilename": "VoxLink",
+  "name": "PeerLink",
+  "outputfilename": "PeerLink",
   "frontend:install": "",
   "frontend:build": "",
   "frontend:dir": "frontend",
   "author": {
-    "name": "VoxLink"
+    "name": "PeerLink (fork of VoxLink by AUGUHDAR)"
   },
   "info": {
-    "productName": "VoxLink",
+    "productName": "PeerLink",
     "productVersion": "1.0.2-1",
-    "copyright": "Copyright 2026 VoxLink",
-    "comments": "VoxLink Minecraft 联机桌面客户端"
+    "copyright": "Copyright 2026 PeerLink; based on VoxLink by AUGUHDAR, LGPL-3.0",
+    "comments": "PeerLink Minecraft 联机桌面客户端（派生自 VoxLink by AUGUHDAR）"
   }
 }
