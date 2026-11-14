@@ -17,11 +17,12 @@ This repository is a derived build fork of the original VoxLink desktop app.
 
 | | |
 |---|---|
-| Official Website | https://link.voxdev.top/ |
+| Official Website | https://xpz.fwh.is/peerlink-website/index.php |
+| Signaling server | https://link.voxdev.top/ |
 | PeerLink mod (GitHub) | https://github.com/xiaopingzai/peerlink-mc |
 | App source (GitHub) | https://github.com/xiaopingzai/peerlink-app |
 | MC Wiki (mcmod.cn) | https://www.mcmod.cn/class/28295.html |
-| Modrinth | https://modrinth.com/mod/peerlink-xiaopingzai/ |
+| Modrinth | https://modrinth.com/mod/peerlink/ |
 | CurseForge | https://www.curseforge.com/minecraft/mc-mods/voxlink |
 | QQ Group | https://qm.qq.com/cgi-bin/qm/qr?k=OEkk9L8m8jdFMkbGDhKZs0u2U0azLAPo&jump_from=webapi |
 | Discord | https://discord.gg/XaAFxvzPDS |
@@ -87,7 +88,7 @@ Please say what your network looks like — home broadband? Campus WiFi? Phone h
 
 **UDP hole punching + STUN** for NAT detection and punching, a custom **reliable UDP transport** carrying game traffic once the path is up, **standard TURN (RFC 5766)** and **peer relay** as fallbacks. The signaling server only swaps addresses during the handshake; game data stays P2P. Written in Go with a webview UI, CLI build has no GUI dependency at all. Some code generated with AI help.
 
-Website: `https://link.voxdev.top/`
+Website: `https://xpz.fwh.is/peerlink-website/index.php`
 
 ---
 
@@ -110,11 +111,12 @@ PeerLink 的独立桌面客户端（派生自 VoxLink by AUGUHDAR），**不需�
 
 | | |
 |---|---|
-| 官网 | https://link.voxdev.top/ |
+| 官网 | https://xpz.fwh.is/peerlink-website/index.php |
+| 信令服务器 | https://link.voxdev.top/ |
 | PeerLink 模组（GitHub） | https://github.com/xiaopingzai/peerlink-mc |
 | 应用端源码（GitHub） | https://github.com/xiaopingzai/peerlink-app |
 | MC百科 | https://www.mcmod.cn/class/28295.html |
-| Modrinth | https://modrinth.com/mod/peerlink-xiaopingzai/ |
+| Modrinth | https://modrinth.com/mod/peerlink/ |
 | CurseForge | https://www.curseforge.com/minecraft/mc-mods/voxlink |
 | QQ群 | https://qm.qq.com/cgi-bin/qm/qr?k=OEkk9L8m8jdFMkbGDhKZs0u2U0azLAPo&jump_from=webapi |
 | Discord | https://discord.gg/XaAFxvzPDS |
@@ -182,4 +184,4 @@ CLI 版就是为被集成而生的：每条命令回答一行 JSON，建房/加�
 
 **UDP 打洞 + STUN** 做 NAT 探测与打洞，链路建立后用自研 **可靠 UDP 传输** 承载游戏流量，失败时由 **标准 TURN（RFC 5766）** 与 **玩家中继** 兜底。信令服务器仅在握手阶段交换地址，游戏数据不经过服务器。Go 实现，界面用 webview，CLI 版零 GUI 依赖。部分代码由 AI 辅助生成。
 
-官网：`https://link.voxdev.top/`
+官网：`https://xpz.fwh.is/peerlink-website/index.php`
