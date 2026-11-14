@@ -25,7 +25,7 @@
     {
       name: ["voxlink.links.modrinth", "Modrinth"],
       desc: ["voxlink.app.links.modrinth_desc", "在 Modrinth 下载 PeerLink 模组"],
-      url: "https://modrinth.com/mod/peerlink-xiaopingzai/"
+      url: "https://modrinth.com/mod/peerlink/"
     },
     {
       name: ["voxlink.links.curseforge", "CurseForge"],
