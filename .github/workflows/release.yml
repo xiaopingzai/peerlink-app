@@ -1,4 +1,5 @@
-# VoxLink 应用端发布矩阵：两个版本（CLI / UI）× 三个平台；Windows 额外提供 32 位(386)产物。
+# PeerLink 应用端发布矩阵：两个版本（CLI / UI）× 三个平台；Windows 额外提供 32 位(386)产物。
+# 派生自 VoxLink by AUGUHDAR（LGPL-3.0），归属见仓库 NOTICE.md。
 #
 # 为什么必须有 CI：CLI 版是纯 Go，本机就能交叉编译；UI 版基于 Wails，
 # linux 需要 GCC+GTK/WebKitGTK、macOS 需要 Xcode 与系统 WKWebView，
@@ -169,7 +170,7 @@ jobs:
           if [ "${{ matrix.goos }}" = "windows" ] && [ "${{ matrix.variant }}" = "ui" ]; then
             GUIFLAG="-H windowsgui"   # CLI 反过来：它要留着控制台，启动器按 stdout 读事件
           fi
-          OUT="dist/VoxLink-${{ matrix.variant == 'ui' && 'UI' || 'CLI' }}-${{ matrix.goos }}-${{ matrix.goarch }}$EXT"
+          OUT="dist/PeerLink-${{ matrix.variant == 'ui' && 'UI' || 'CLI' }}-${{ matrix.goos }}-${{ matrix.goarch }}$EXT"
           mkdir -p dist
           TAGS=cli
           if [ "${{ matrix.variant }}" = "ui" ]; then
@@ -264,7 +265,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: voxlink-${{ matrix.name }}
+          name: peerlink-${{ matrix.name }}
           path: dist/*
 
   release:
@@ -290,7 +291,8 @@ jobs:
           draft: ${{ github.event.inputs.draft == 'true' }}
           files: out/*
           body: |
-            两个版本：`VoxLink-UI-*`（图形界面）、`VoxLink-CLI-*`（给启动器集成，无窗口）。
+            两个版本：`PeerLink-UI-*`（图形界面）、`PeerLink-CLI-*`（给启动器集成，无窗口）。
+            本项目派生自 VoxLink by AUGUHDAR，LGPL-3.0，归属见仓库 NOTICE.md。
             CLI 版经 UPX 压缩，部分杀软可能误报，校验和见 SHA256SUMS.txt。
 
             macOS 的两个架构：`darwin-arm64` 在 Apple Silicon runner 上原生构建；
