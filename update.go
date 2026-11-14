@@ -72,7 +72,7 @@ var sharedUpdate = &updateState{}
 
 // ---------- 版本比较 ----------
 
-// parseSemver "1.1.9" -> [1,1,9]（容忍前导 v 与非数字段）
+// parseSemver "1.0.2-1" -> [1,0,2]（容忍前导 v 与非数字段，-1 后缀不参与比较）
 func parseSemver(s string) []int {
 	s = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(s), "v"))
 	out := make([]int, 0, 3)

@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	appVersion       = "1.1.9"
+	appVersion       = "1.0.2-1"
 	defaultServerURL = "https://link.voxdev.top"
 	// clientProtocolVersion 是信令体里的客户端协议号，模组在 SignalingClient.java:199/284
 	// 两处硬编码发 7（语义即 ProtocolNegotiator.PROTOCOL_VERSION_7），服务端用 ">0" 当
