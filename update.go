@@ -26,9 +26,12 @@ const (
 	updateGHOwner = "xiaopingzai"
 	updateGHRepo  = "peerlink-app"
 
+	// 官网更新清单（INI 式 update.txt）。优先探测该源，GitHub Release 作为回退。
+	updateManifestURL = "https://xpz.fwh.is/peerlink-website/update.txt"
+
 	// 探测窗口
-	updateHeadTimeout   = 6 * time.Second
-	updateTotalTimeout  = 8 * time.Second
+	updateHeadTimeout     = 6 * time.Second
+	updateTotalTimeout    = 8 * time.Second
 	updateDownloadTimeout = 30 * time.Minute
 )
 
@@ -37,7 +40,7 @@ type updateInfo struct {
 	Available   bool   `json:"available"`
 	Version     string `json:"version"`
 	Current     string `json:"current"`
-	Source      string `json:"source"`       // github
+	Source      string `json:"source"` // github
 	AssetName   string `json:"assetName"`
 	DownloadURL string `json:"downloadUrl"`
 	Notes       string `json:"notes"`
@@ -54,18 +57,18 @@ type releaseAsset struct {
 
 // releaseView 双源归一后的 release。
 type releaseView struct {
-	Tag      string
-	Notes    string
-	Assets   []releaseAsset
-	Source   string
+	Tag    string
+	Notes  string
+	Assets []releaseAsset
+	Source string
 }
 
 type updateState struct {
-	mu       sync.Mutex
-	info     updateInfo
-	checking bool
+	mu          sync.Mutex
+	info        updateInfo
+	checking    bool
 	downloading bool
-	progress int // 0-100
+	progress    int // 0-100
 }
 
 var sharedUpdate = &updateState{}
@@ -147,23 +150,92 @@ func ghProbe(ctx context.Context) (*releaseView, error) {
 
 var updateHTTP = &http.Client{Timeout: updateTotalTimeout}
 
-// raceLatest 探测 GitHub 发布仓的最新 Release。
+// manifestPlatforms 清单键与 GOOS-GOARCH 一一对应。
+var manifestPlatforms = []string{
+	"windows-amd64", "windows-386",
+	"linux-amd64", "linux-arm64",
+	"darwin-amd64", "darwin-arm64",
+}
+
+// parseManifest 解析官网 INI 式 update.txt 为归一后的 releaseView。
+func parseManifest(text string) (*releaseView, error) {
+	fields := map[string]string{}
+	for _, line := range strings.Split(text, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		k, v, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		fields[strings.TrimSpace(k)] = strings.TrimSpace(v)
+	}
+
+	version := strings.TrimSpace(fields["version"])
+	if version == "" {
+		return nil, fmt.Errorf("manifest missing version")
+	}
+	view := &releaseView{Tag: version, Notes: fields["notes"], Source: "website"}
+	for _, key := range manifestPlatforms {
+		u := strings.TrimSpace(fields[key])
+		if u == "" {
+			continue
+		}
+		name := "VoxLink-UI-" + key
+		if strings.HasPrefix(key, "windows-") {
+			name += ".exe"
+		}
+		view.Assets = append(view.Assets, releaseAsset{Name: name, URL: u})
+	}
+	return view, nil
+}
+
+// webProbe 拉取官网更新清单并解析。
+func webProbe(ctx context.Context) (*releaseView, error) {
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, updateManifestURL, nil)
+	req.Header.Set("User-Agent", httpUserAgent)
+	resp, err := updateHTTP.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("manifest status %d", resp.StatusCode)
+	}
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if err != nil {
+		return nil, err
+	}
+	return parseManifest(string(body))
+}
+
+// raceLatest 双源探测：官网清单优先，GitHub Release 作为回退。
 func raceLatest() (*releaseView, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), updateTotalTimeout)
 	defer cancel()
 
-	ch := make(chan probeResult, 1)
+	ch := make(chan probeResult, 2)
+	go func() { v, e := webProbe(ctx); ch <- probeResult{v, e} }()
 	go func() { v, e := ghProbe(ctx); ch <- probeResult{v, e} }()
 
-	select {
-	case r := <-ch:
+	var ghView *releaseView
+	var lastErr error
+	for i := 0; i < 2; i++ {
+		r := <-ch
 		if r.err != nil {
-			return nil, r.err
+			lastErr = r.err
+			continue
 		}
-		return r.view, nil
-	case <-ctx.Done():
-		return nil, fmt.Errorf("发布源超时")
+		if r.view.Source == "website" {
+			return r.view, nil
+		}
+		ghView = r.view
 	}
+	if ghView != nil {
+		return ghView, nil
+	}
+	return nil, lastErr
 }
 
 // pickAsset 选当前平台/架构对应的 UI 版资产。
