@@ -653,7 +653,7 @@
   "voxlink.app.room.title": "Sala",
   "voxlink.app.room.unnamed": "Sala sin nombre",
   "voxlink.app.room.waiting": "Esperando jugadores",
-  "voxlink.app.settings.about": "Acerca de VoxLink",
+  "voxlink.app.settings.about": "Acerca de VoxLink · PeerLink",
   "voxlink.app.settings.about_desc": "La app de VoxLink: un asistente independiente creado para multijugador de Minecraft qwq",
   "voxlink.app.settings.desc": "Ajusta los parámetros de la app de escritorio de VoxLink",
   "voxlink.app.settings.instance_count": "%s instancias",

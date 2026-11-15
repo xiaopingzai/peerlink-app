@@ -653,7 +653,7 @@
   "voxlink.app.room.title": "الغرفة",
   "voxlink.app.room.unnamed": "غرفة بدون اسم",
   "voxlink.app.room.waiting": "بانتظار اللاعبين",
-  "voxlink.app.settings.about": "حول VoxLink",
+  "voxlink.app.settings.about": "حول VoxLink · PeerLink",
   "voxlink.app.settings.about_desc": "تطبيق VoxLink — مساعد مستقل صُمِّم للّعب الجماعي في Minecraft qwq",
   "voxlink.app.settings.desc": "اضبط إعدادات تطبيق VoxLink لسطح المكتب",
   "voxlink.app.settings.instance_count": "%s نسخة",

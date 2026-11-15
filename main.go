@@ -22,7 +22,7 @@ func main() {
 	app := NewApp()
 
 	err := wails.Run(&options.App{
-		Title:       "VoxLink",
+		Title:       "VoxLink · PeerLink",
 		Width:       1100,
 		Height:      720,
 		MinWidth:    860,

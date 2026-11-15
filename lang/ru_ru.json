@@ -653,7 +653,7 @@
   "voxlink.app.room.title": "Комната",
   "voxlink.app.room.unnamed": "Комната без имени",
   "voxlink.app.room.waiting": "Ожидание игроков",
-  "voxlink.app.settings.about": "О VoxLink",
+  "voxlink.app.settings.about": "О VoxLink · PeerLink",
   "voxlink.app.settings.about_desc": "Приложение VoxLink — независимый помощник, созданный для многопользовательской игры в Minecraft qwq",
   "voxlink.app.settings.desc": "Настройте параметры настольного приложения VoxLink",
   "voxlink.app.settings.instance_count": "экземпляров: %s",

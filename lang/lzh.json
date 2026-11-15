@@ -653,7 +653,7 @@
   "voxlink.app.room.title": "房",
   "voxlink.app.room.unnamed": "未名之房",
   "voxlink.app.room.waiting": "待玩家",
-  "voxlink.app.settings.about": "論 VoxLink",
+  "voxlink.app.settings.about": "論 VoxLink · PeerLink",
   "voxlink.app.settings.about_desc": "VoxLink 之應用端，為 Minecraft 聯遊而生之獨助 qwq",
   "voxlink.app.settings.desc": "調 VoxLink 桌面之參",
   "voxlink.app.settings.instance_count": "%s 實例",

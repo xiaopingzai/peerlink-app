@@ -51,6 +51,21 @@
       name: ["voxlink.app.links.github_app", "GitHub（应用端）"],
       desc: ["voxlink.app.links.github_app_desc", "PeerLink 桌面应用端的源码仓库（就是这个程序本身）"],
       url: "https://github.com/xiaopingzai/peerlink-app"
+    },
+    {
+      name: ["voxlink.app.links.releases", "应用端 Releases"],
+      desc: ["voxlink.app.links.releases_desc", "查看与下载桌面客户端的各个版本"],
+      url: "https://github.com/xiaopingzai/peerlink-app/releases"
+    },
+    {
+      name: ["voxlink.app.links.wiki", "Wiki 文档"],
+      desc: ["voxlink.app.links.wiki_desc", "联机教程、使用说明与常见问题"],
+      url: "https://github.com/xiaopingzai/peerlink-mc/wiki"
+    },
+    {
+      name: ["voxlink.app.links.issues", "Issues 反馈"],
+      desc: ["voxlink.app.links.issues_desc", "提交问题、报 bug 或提改进建议"],
+      url: "https://github.com/xiaopingzai/peerlink-mc/issues"
     }
   ];
 

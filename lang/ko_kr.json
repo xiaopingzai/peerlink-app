@@ -653,7 +653,7 @@
   "voxlink.app.room.title": "방",
   "voxlink.app.room.unnamed": "이름 없는 방",
   "voxlink.app.room.waiting": "플레이어 대기 중",
-  "voxlink.app.settings.about": "VoxLink 정보",
+  "voxlink.app.settings.about": "VoxLink 정보 · PeerLink",
   "voxlink.app.settings.about_desc": "VoxLink 앱 — Minecraft 멀티플레이를 위해 태어난 독립 도우미 qwq",
   "voxlink.app.settings.desc": "VoxLink 데스크톱 설정을 조정합니다",
   "voxlink.app.settings.instance_count": "%s개 인스턴스",

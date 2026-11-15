@@ -653,7 +653,7 @@
   "voxlink.app.room.title": "ルーム",
   "voxlink.app.room.unnamed": "名前のないルーム",
   "voxlink.app.room.waiting": "プレイヤーを待機中",
-  "voxlink.app.settings.about": "VoxLink について",
+  "voxlink.app.settings.about": "VoxLink について · PeerLink",
   "voxlink.app.settings.about_desc": "VoxLinkアプリ、Minecraftマルチプレイのために生まれた独立アシスタント qwq",
   "voxlink.app.settings.desc": "VoxLinkデスクトップの設定を調整",
   "voxlink.app.settings.instance_count": "%s 個の実例",

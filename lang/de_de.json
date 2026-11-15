@@ -653,7 +653,7 @@
   "voxlink.app.room.title": "Raum",
   "voxlink.app.room.unnamed": "Unbenannter Raum",
   "voxlink.app.room.waiting": "Warten auf Spieler",
-  "voxlink.app.settings.about": "Über VoxLink",
+  "voxlink.app.settings.about": "Über VoxLink · PeerLink",
   "voxlink.app.settings.about_desc": "Die VoxLink-App — ein eigenständiger Assistent für Minecraft-Multiplayer qwq",
   "voxlink.app.settings.desc": "Einstellungen der VoxLink-Desktop-App anpassen",
   "voxlink.app.settings.instance_count": "%s Instanzen",
