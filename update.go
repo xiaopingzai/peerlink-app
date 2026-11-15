@@ -75,7 +75,7 @@ var sharedUpdate = &updateState{}
 
 // ---------- 版本比较 ----------
 
-// parseSemver "1.0.2-2" -> [1,0,2]（容忍前导 v 与非数字段，-2 后缀不参与比较）
+// parseSemver "1.0.2-2" -> [1,0,2]（容忍前导 v 与非数字段，核心三段参与比较）
 func parseSemver(s string) []int {
 	s = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(s), "v"))
 	out := make([]int, 0, 3)
@@ -95,7 +95,25 @@ func parseSemver(s string) []int {
 	return out[:3]
 }
 
-// versionNewer 远端是否比本地新
+// parseSuffix 取 "-N" 迭代序号：无后缀记 0，"1.0.2-2" -> 2。
+// 本项目用 -N 表示同一核心号下的补丁迭代，序号越大越新。
+func parseSuffix(s string) int {
+	s = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(s), "v"))
+	i := strings.Index(s, "-")
+	if i < 0 {
+		return 0
+	}
+	n := 0
+	for _, c := range s[i+1:] {
+		if c < '0' || c > '9' {
+			break
+		}
+		n = n*10 + int(c-'0')
+	}
+	return n
+}
+
+// versionNewer 远端是否比本地新：先比核心三段，核心相同再比 -N 迭代序号。
 func versionNewer(remote, local string) bool {
 	r, l := parseSemver(remote), parseSemver(local)
 	for i := 0; i < 3; i++ {
@@ -106,7 +124,7 @@ func versionNewer(remote, local string) bool {
 			return false
 		}
 	}
-	return false
+	return parseSuffix(remote) > parseSuffix(local)
 }
 
 // ---------- 双源探测 ----------
