@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	appVersion       = "1.0.2-1"
+	appVersion       = "1.0.2-2"
 	defaultServerURL = "https://link.voxdev.top"
 	// clientProtocolVersion 是信令体里的客户端协议号，模组在 SignalingClient.java:199/284
 	// 两处硬编码发 7（语义即 ProtocolNegotiator.PROTOCOL_VERSION_7），服务端用 ">0" 当
@@ -607,8 +607,8 @@ func (a *App) ListRooms(queryJSON string) string {
 		Category string `json:"category"`
 		Loader   string `json:"loader"`
 		// Source 来源筛选：""=全部 / "voxlink"（排除互通房）/ "happylink"（只看互通房）
-		Source   string `json:"source"`
-		Search   string `json:"search"`
+		Source string `json:"source"`
+		Search string `json:"search"`
 	}
 	if err := parseParams(queryJSON, &req); err != nil {
 		return wrapErr("INVALID_PARAMS", err.Error())
@@ -621,8 +621,8 @@ func (a *App) ListRooms(queryJSON string) string {
 	}
 
 	query := url.Values{
-		"page":       {strconv.Itoa(req.Page)},
-		"size":       {strconv.Itoa(req.Size)},
+		"page": {strconv.Itoa(req.Page)},
+		"size": {strconv.Itoa(req.Size)},
 		// 应用端按 app 身份拉列表：服务端据此放行互通房（showHL 在 clientType=app 时恒真），
 		// 并且 mod 房照样全收——写死 "mod" 会让本端看不到 Happy Link 房与互通融合房。
 		"clientType": {"app"},

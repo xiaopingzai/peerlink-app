@@ -8,10 +8,10 @@ version=1.0.2
 channel=stable
 notes=更新说明
 
-windows-amd64=https://example.com/VoxLink-UI-windows-amd64.exe
-windows-386=https://example.com/VoxLink-UI-windows-386.exe
-linux-amd64=https://example.com/VoxLink-UI-linux-amd64
-darwin-arm64=https://example.com/VoxLink-UI-darwin-arm64
+windows-amd64=https://example.com/PeerLink-UI-windows-amd64.exe
+windows-386=https://example.com/PeerLink-UI-windows-386.exe
+linux-amd64=https://example.com/PeerLink-UI-linux-amd64
+darwin-arm64=https://example.com/PeerLink-UI-darwin-arm64
 `
 	view, err := parseManifest(body)
 	if err != nil {
@@ -33,10 +33,10 @@ darwin-arm64=https://example.com/VoxLink-UI-darwin-arm64
 	}
 
 	want := map[string]string{
-		"VoxLink-UI-windows-amd64.exe": "https://example.com/VoxLink-UI-windows-amd64.exe",
-		"VoxLink-UI-windows-386.exe":   "https://example.com/VoxLink-UI-windows-386.exe",
-		"VoxLink-UI-linux-amd64":       "https://example.com/VoxLink-UI-linux-amd64",
-		"VoxLink-UI-darwin-arm64":      "https://example.com/VoxLink-UI-darwin-arm64",
+		"PeerLink-UI-windows-amd64.exe": "https://example.com/PeerLink-UI-windows-amd64.exe",
+		"PeerLink-UI-windows-386.exe":   "https://example.com/PeerLink-UI-windows-386.exe",
+		"PeerLink-UI-linux-amd64":       "https://example.com/PeerLink-UI-linux-amd64",
+		"PeerLink-UI-darwin-arm64":      "https://example.com/PeerLink-UI-darwin-arm64",
 	}
 	for name, u := range want {
 		if byName[name] != u {
@@ -44,7 +44,7 @@ darwin-arm64=https://example.com/VoxLink-UI-darwin-arm64
 		}
 	}
 	// 未提供的平台不应出现
-	if _, ok := byName["VoxLink-UI-linux-arm64"]; ok {
+	if _, ok := byName["PeerLink-UI-linux-arm64"]; ok {
 		t.Error("linux-arm64 未在清单中，不应生成资产")
 	}
 }

@@ -75,7 +75,7 @@ var sharedUpdate = &updateState{}
 
 // ---------- 版本比较 ----------
 
-// parseSemver "1.0.2-1" -> [1,0,2]（容忍前导 v 与非数字段，-1 后缀不参与比较）
+// parseSemver "1.0.2-2" -> [1,0,2]（容忍前导 v 与非数字段，-2 后缀不参与比较）
 func parseSemver(s string) []int {
 	s = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(s), "v"))
 	out := make([]int, 0, 3)
@@ -182,7 +182,7 @@ func parseManifest(text string) (*releaseView, error) {
 		if u == "" {
 			continue
 		}
-		name := "VoxLink-UI-" + key
+		name := "PeerLink-UI-" + key
 		if strings.HasPrefix(key, "windows-") {
 			name += ".exe"
 		}
@@ -239,21 +239,25 @@ func raceLatest() (*releaseView, error) {
 }
 
 // pickAsset 选当前平台/架构对应的 UI 版资产。
+// 新产物命名 PeerLink-UI-*；旧版/回退源仍可能是 VoxLink-UI-*，两种前缀都认。
 func pickAsset(assets []releaseAsset) *releaseAsset {
-	want := "VoxLink-UI-" + runtime.GOOS + "-" + runtime.GOARCH
+	suffix := runtime.GOOS + "-" + runtime.GOARCH
+	ext := ""
 	if runtime.GOOS == "windows" {
-		want += ".exe"
+		ext = ".exe"
 	}
-	for i := range assets {
-		if assets[i].Name == want {
-			return &assets[i]
+	for _, prefix := range []string{"PeerLink-UI-", "VoxLink-UI-"} {
+		want := prefix + suffix + ext
+		for i := range assets {
+			if assets[i].Name == want {
+				return &assets[i]
+			}
 		}
-	}
-	// 放宽：同平台同架构的 UI 包（容忍不带 .exe）
-	for i := range assets {
-		n := assets[i].Name
-		if strings.HasPrefix(n, "VoxLink-UI-"+runtime.GOOS+"-"+runtime.GOARCH) {
-			return &assets[i]
+		// 放宽：同平台同架构的 UI 包（容忍不带 .exe）
+		for i := range assets {
+			if strings.HasPrefix(assets[i].Name, prefix+suffix) {
+				return &assets[i]
+			}
 		}
 	}
 	return nil
