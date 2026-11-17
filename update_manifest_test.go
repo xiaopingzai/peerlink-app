@@ -102,3 +102,40 @@ func TestPickAssetMissing(t *testing.T) {
 		t.Errorf("当前平台无资产时应返回 nil, got %+v", got)
 	}
 }
+
+func TestPickLatestPrefersNewerGitHub(t *testing.T) {
+	// 官网清单滞后在 1.0.2-3，GitHub 已是 1.0.2-4：应取 GitHub，不能被旧清单盖住。
+	views := []*releaseView{
+		{Tag: "1.0.2-3", Source: "website"},
+		{Tag: "1.0.2-4", Source: "github"},
+	}
+	got := pickLatest(views)
+	if got == nil || got.Source != "github" || got.Tag != "1.0.2-4" {
+		t.Errorf("应取更新的 GitHub 源, got %+v", got)
+	}
+}
+
+func TestPickLatestKeepsNewerWebsite(t *testing.T) {
+	views := []*releaseView{
+		{Tag: "1.0.2-4", Source: "website"},
+		{Tag: "1.0.2-3", Source: "github"},
+	}
+	got := pickLatest(views)
+	if got == nil || got.Source != "website" || got.Tag != "1.0.2-4" {
+		t.Errorf("官网更新时应保留官网源, got %+v", got)
+	}
+}
+
+func TestPickLatestSingleSource(t *testing.T) {
+	views := []*releaseView{{Tag: "1.0.2-4", Source: "github"}}
+	got := pickLatest(views)
+	if got == nil || got.Tag != "1.0.2-4" {
+		t.Errorf("单源应原样返回, got %+v", got)
+	}
+}
+
+func TestPickLatestEmpty(t *testing.T) {
+	if got := pickLatest(nil); got != nil {
+		t.Errorf("无源时应返回 nil, got %+v", got)
+	}
+}

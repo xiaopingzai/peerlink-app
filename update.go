@@ -228,7 +228,23 @@ func webProbe(ctx context.Context) (*releaseView, error) {
 	return parseManifest(string(body))
 }
 
-// raceLatest 双源探测：官网清单优先，GitHub Release 作为回退。
+// pickLatest 在双源都成功时取版本号更新的那个；同版本保留先入列的（官网清单优先）。
+// 不能只认官网清单：清单未及时更新时会盖住 GitHub 上更新的 Release。
+func pickLatest(views []*releaseView) *releaseView {
+	if len(views) == 0 {
+		return nil
+	}
+	best := views[0]
+	for _, v := range views[1:] {
+		if versionNewer(v.Tag, best.Tag) {
+			best = v
+		}
+	}
+	return best
+}
+
+// raceLatest 双源探测：官网清单与 GitHub Release 并发拉取，都成功时取版本更新者；
+// 仅一个成功就用那个；都失败返回最后一个错误。
 func raceLatest() (*releaseView, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), updateTotalTimeout)
 	defer cancel()
@@ -237,7 +253,7 @@ func raceLatest() (*releaseView, error) {
 	go func() { v, e := webProbe(ctx); ch <- probeResult{v, e} }()
 	go func() { v, e := ghProbe(ctx); ch <- probeResult{v, e} }()
 
-	var ghView *releaseView
+	var views []*releaseView
 	var lastErr error
 	for i := 0; i < 2; i++ {
 		r := <-ch
@@ -245,13 +261,10 @@ func raceLatest() (*releaseView, error) {
 			lastErr = r.err
 			continue
 		}
-		if r.view.Source == "website" {
-			return r.view, nil
-		}
-		ghView = r.view
+		views = append(views, r.view)
 	}
-	if ghView != nil {
-		return ghView, nil
+	if best := pickLatest(views); best != nil {
+		return best, nil
 	}
 	return nil, lastErr
 }
