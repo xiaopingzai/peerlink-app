@@ -484,6 +484,16 @@
             <label class="field-label" for="set-language" data-i18n="voxlink.app.settings.language">界面语言</label>
             <select class="select" id="set-language"></select>
           </div>
+          <div class="field">
+            <label class="field-label" for="set-perf-tier" data-i18n="voxlink.app.settings.perf_tier">性能/内存档位</label>
+            <select class="select" id="set-perf-tier">
+              <option value="auto" data-i18n="voxlink.app.settings.perf_auto">自动（按内存）</option>
+              <option value="light" data-i18n="voxlink.app.settings.perf_light">低内存优先</option>
+              <option value="balanced" data-i18n="voxlink.app.settings.perf_balanced">均衡</option>
+              <option value="full" data-i18n="voxlink.app.settings.perf_full">性能优先</option>
+            </select>
+            <div class="field-sub" id="set-perf-mem" data-i18n="voxlink.app.settings.perf_sub">内存紧张的设备选「低内存优先」可压低常驻占用</div>
+          </div>
 
           <div class="field switch-field">
             <div>

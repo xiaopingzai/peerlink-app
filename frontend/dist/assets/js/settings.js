@@ -5,7 +5,7 @@
 "use strict";
 
 (function (VL) {
-  var FALLBACK_VERSION = "1.0.2-3";
+  var FALLBACK_VERSION = "1.0.2-4";
   // 加载器就给这三个，跟「创建房间」页的新建实例下拉保持一致
   var LOADERS = ["fabric", "forge", "neoforge"];
   var els = {};
@@ -14,6 +14,7 @@
   var armTimer = null; // 「删除」的二次确认，几秒不点就自己缩回去
   // 玩家手动改过加载器/版本后，自动识别就不再覆盖他的选择
   var msUserEdited = { loader: false, gameVersion: false };
+  var perfCurrent = "auto"; // 后端确认过的档位，保存失败时退回这个值
 
   function cacheEls() {
     els.theme = VL.$("#set-theme");
@@ -44,6 +45,8 @@
     els.autoUpdate = VL.$("#set-auto-update");
     els.checkUpdate = VL.$("#set-check-update");
     els.updateStatus = VL.$("#set-update-status");
+    els.perfTier = VL.$("#set-perf-tier");
+    els.perfMem = VL.$("#set-perf-mem");
     els.msBrowse = VL.$("#set-msi-browse");
     els.msMakeActive = VL.$("#set-msi-make-active");
   }
@@ -96,6 +99,14 @@
     if (els.language.selectedIndex < 0) els.language.value = "auto";
   }
 
+  // 内存快照行：整机总内存 + 本端 Go 堆占用；totalMemory=0 表示当前平台探测不到。
+  function renderPerfMem(data) {
+    if (!els.perfMem) return;
+    var total = VL.fmtSize(data && data.totalMemory);
+    var heap = VL.fmtSize(data && data.heapInUse);
+    els.perfMem.textContent = VL.t("voxlink.app.settings.perf_mem", "整机内存 %s · 本端占用 %s", total, heap);
+  }
+
   async function load() {
     try {
       var data = await VL.api("GetSettings");
@@ -110,6 +121,12 @@
       if (data.language) VL.lang.setting = data.language;
       if (Array.isArray(data.languages)) VL.lang.available = data.languages;
       renderLanguageOptions();
+      if (els.perfTier) {
+        perfCurrent = data.perfTier || "auto";
+        els.perfTier.value = perfCurrent;
+        if (els.perfTier.selectedIndex < 0) els.perfTier.value = "auto";
+      }
+      renderPerfMem(data);
     } catch (e) {
       els.version.textContent = "v" + FALLBACK_VERSION;
     }
@@ -132,7 +149,8 @@
       await VL.api("SaveSettings", JSON.stringify({
         theme: VL.themes.current,
         relayEnabled: !!els.relay.checked,
-        autoUpdate: els.autoUpdate ? !!els.autoUpdate.checked : true
+        autoUpdate: els.autoUpdate ? !!els.autoUpdate.checked : true,
+        perfTier: els.perfTier ? els.perfTier.value : "auto"
       }));
       VL.toast(VL.t("voxlink.app.action.saved", "已保存"), "success");
     } catch (e) {
@@ -161,6 +179,23 @@
         els.error.classList.remove("hidden");
       }
       els.relay.checked = !els.relay.checked; // 保存失败就退回原状，别让界面骗人
+    }
+  }
+
+  // 档位即时保存；失败退回后端确认过的值，并刷新内存快照。
+  async function changePerfTier() {
+    if (!els.perfTier) return;
+    var picked = els.perfTier.value;
+    try {
+      var res = await VL.api("SaveSettings", JSON.stringify({ perfTier: picked }));
+      perfCurrent = picked;
+      if (res) renderPerfMem(res);
+    } catch (e) {
+      if (e.code !== "NO_BACKEND") {
+        els.error.textContent = VL.errText(e);
+        els.error.classList.remove("hidden");
+      }
+      els.perfTier.value = perfCurrent;
     }
   }
 
@@ -618,6 +653,7 @@
     els.theme.addEventListener("change", changeTheme);
     if (els.language) els.language.addEventListener("change", changeLanguage);
     els.relay.addEventListener("change", changeRelay);
+    if (els.perfTier) els.perfTier.addEventListener("change", changePerfTier);
     if (els.msJoin) els.msJoin.addEventListener("change", changeModSyncJoin);
     if (els.checkUpdate) {
       els.checkUpdate.addEventListener("click", function () { checkUpdate(); });

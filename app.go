@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	appVersion       = "1.0.2-3"
+	appVersion       = "1.0.2-4"
 	defaultServerURL = "https://link.voxdev.top"
 	// clientProtocolVersion 是信令体里的客户端协议号，模组在 SignalingClient.java:199/284
 	// 两处硬编码发 7（语义即 ProtocolNegotiator.PROTOCOL_VERSION_7），服务端用 ">0" 当
@@ -173,6 +173,8 @@ func NewApp() *App {
 // Init 加载持久化设置，由 UI 版 startup 或 CLI 版入口在拿到 sink 之后调用。
 func (a *App) Init() {
 	a.loadSettings()
+	// 按落盘档位（auto 时按整机内存）调整 GC 激进程度。
+	applyPerfTier(a.perfTier())
 }
 
 // Shutdown 停掉当前会话并通知服务端。
@@ -507,7 +509,7 @@ func (a *App) GetSettings() string {
 	if language == "" {
 		language = "auto"
 	}
-	return wrapOK(map[string]any{
+	out := map[string]any{
 		"serverUrl":    defaultServerURL,
 		"theme":        theme,
 		"language":     language,
@@ -517,7 +519,11 @@ func (a *App) GetSettings() string {
 		"relayEnabled": a.relayEnabled(),
 		"autoUPnP":     a.autoUPnPEnabled(),
 		"autoUpdate":   a.autoUpdateEnabled(),
-	})
+	}
+	for k, v := range a.perfInfo() {
+		out[k] = v
+	}
+	return wrapOK(out)
 }
 
 // SaveSettings 保存 {theme?, clientTag?}（参数里的 serverUrl 一律忽略）并返回同 GetSettings。
@@ -532,6 +538,7 @@ func (a *App) SaveSettings(settingsJSON string) string {
 		AutoUPnP     *bool   `json:"autoUPnP"`
 		AutoUpdate   *bool   `json:"autoUpdate"`
 		Language     string  `json:"language"`
+		PerfTier     *string `json:"perfTier"`
 	}
 	if err := parseParams(settingsJSON, &req); err != nil {
 		return wrapErr("INVALID_PARAMS", err.Error())
@@ -550,6 +557,9 @@ func (a *App) SaveSettings(settingsJSON string) string {
 		// 与 clientTag/language 同一口径：开发者入口当场报错，不写进磁盘。
 		// 界面只会发这两个值，落盘的野值会让主题解析走兜底分支。
 		return wrapErr("INVALID_PARAMS", "theme 只接受 light|dark，收到 "+req.Theme)
+	}
+	if req.PerfTier != nil && !validPerfTier(*req.PerfTier) {
+		return wrapErr("INVALID_PARAMS", "perfTier 只接受 auto|light|balanced|full，收到 "+*req.PerfTier)
 	}
 
 	a.mu.Lock()
@@ -574,7 +584,13 @@ func (a *App) SaveSettings(settingsJSON string) string {
 	if req.AutoUpdate != nil {
 		a.settings.AutoUpdate = req.AutoUpdate
 	}
+	if req.PerfTier != nil {
+		a.settings.PerfTier = *req.PerfTier
+	}
 	a.mu.Unlock()
+
+	// 档位变更即时生效：重算 GC 激进程度（落盘失败也不回滚已应用的运行时参数）。
+	applyPerfTier(a.perfTier())
 
 	if err := a.saveSettings(); err != nil {
 		return wrapErr("IO", err.Error())

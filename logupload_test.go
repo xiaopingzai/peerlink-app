@@ -364,11 +364,9 @@ func TestLogUploadUploadHeaders(t *testing.T) {
 // TestLogUploadSingleFlight 并发双 runUpload 只允许一个真 post（:361-369 单飞锁）。
 func TestLogUploadSingleFlight(t *testing.T) {
 	slow := make(chan struct{})
-	unblockOnce := sync.Once{}
 	a, hc := newLogUploadHarness(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("route") == logRouteUpload {
-			<-slow
-			unblockOnce.Do(func() { close(slow) })
+			<-slow // 闸门由测试在末尾单次关闭，处理器不负责关闭，避免重复 close
 		}
 		_, _ = w.Write([]byte(`{"success":true}`))
 	})

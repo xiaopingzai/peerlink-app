@@ -32,6 +32,9 @@ type appSettings struct {
 	AutoUpdate *bool `json:"autoUpdate"`
 	// UpdatePromptAt 上次更新提示的玩家选择："later"=下次启动再提醒，空=从未提示（开机照常查）。
 	UpdatePromptAt string `json:"updatePromptAt"`
+	// PerfTier 性能/内存档位："auto"（默认，按整机内存自动选）、"light"（低内存激进）、
+	// "balanced"（均衡）、"full"（优先吞吐）。落盘野值在加载时回落 auto。
+	PerfTier string `json:"perfTier"`
 }
 
 func defaultSettings() appSettings {
@@ -43,7 +46,18 @@ func defaultSettings() appSettings {
 		RelayEnabled: &on,
 		AutoUpdate:   &on,
 		Language:     "auto",
+		PerfTier:     perfTierAuto,
 	}
+}
+
+// perfTier 当前性能档位（nil/野值按 auto）。
+func (a *App) perfTier() string {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if validPerfTier(a.settings.PerfTier) {
+		return a.settings.PerfTier
+	}
+	return perfTierAuto
 }
 
 // relayEnabled 当前中继开关（nil 表示历史配置没这一项，按模组默认 true）。

@@ -162,8 +162,16 @@ func TestGuestConnectViaBridgeBuildsLocalBridge(t *testing.T) {
 			go func(c net.Conn) {
 				defer c.Close()
 				buf := make([]byte, 64)
-				n, _ := c.Read(buf)
-				_, _ = c.Write(append([]byte("MC:"), buf[:n]...))
+				for {
+					n, err := c.Read(buf)
+					if n <= 0 {
+						return
+					}
+					_, _ = c.Write(append([]byte("MC:"), buf[:n]...))
+					if err != nil {
+						return
+					}
+				}
 			}(c)
 		}
 	}()
