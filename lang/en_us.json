@@ -773,6 +773,7 @@
   "voxlink.app.update.notes": "Release notes",
   "voxlink.app.update.no_notes": "No notes for this release",
   "voxlink.app.update.from": "Update from %s",
+  "voxlink.app.update.source_website": "Website",
   "voxlink.app.update.failed": "Update failed: %s",
   "voxlink.app.update.later_toast": "Got it, we'll remind you next launch",
   "voxlink.app.ms.inferred": "Detected automatically: %s (editable)",

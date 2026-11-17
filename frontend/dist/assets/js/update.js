@@ -22,6 +22,14 @@
     els.later = VL.$("#upd-later");
   }
 
+  // 来源键 → 展示名：website 是官网清单，不能被笼统标成 GitHub。
+  function updateSourceLabel(src) {
+    if (src === "gitee") return "Gitee";
+    if (src === "github") return "GitHub";
+    if (src === "website") return VL.t("voxlink.app.update.source_website", "官网");
+    return src;
+  }
+
   function openModal(v) {
     if (!els.modal) return;
     info = v;
@@ -30,7 +38,7 @@
     if (els.notes) els.notes.textContent = v.notes || VL.t("voxlink.app.update.no_notes", "本次更新没有额外说明");
     if (els.src) {
       els.src.textContent = v.source
-        ? VL.t("voxlink.app.update.from", "更新来自 %s", v.source === "gitee" ? "Gitee" : "GitHub")
+        ? VL.t("voxlink.app.update.from", "更新来自 %s", updateSourceLabel(v.source))
         : "";
     }
     if (els.progress) els.progress.classList.add("hidden");

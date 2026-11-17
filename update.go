@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -30,7 +31,6 @@ const (
 	updateManifestURL = "https://xpz.fwh.is/peerlink-website/update.txt"
 
 	// 探测窗口
-	updateHeadTimeout     = 6 * time.Second
 	updateTotalTimeout    = 8 * time.Second
 	updateDownloadTimeout = 30 * time.Minute
 )
@@ -40,9 +40,12 @@ type updateInfo struct {
 	Available   bool   `json:"available"`
 	Version     string `json:"version"`
 	Current     string `json:"current"`
-	Source      string `json:"source"` // github
+	Source      string `json:"source"` // github / website
+	Channel     string `json:"channel,omitempty"`
 	AssetName   string `json:"assetName"`
 	DownloadURL string `json:"downloadUrl"`
+	FallbackURL string `json:"fallbackUrl,omitempty"`
+	AssetSize   int64  `json:"-"`
 	Notes       string `json:"notes"`
 	CheckedAt   int64  `json:"checkedAt"`
 	Error       string `json:"error,omitempty"`
@@ -57,10 +60,11 @@ type releaseAsset struct {
 
 // releaseView 双源归一后的 release。
 type releaseView struct {
-	Tag    string
-	Notes  string
-	Assets []releaseAsset
-	Source string
+	Tag     string
+	Notes   string
+	Channel string
+	Assets  []releaseAsset
+	Source  string
 }
 
 type updateState struct {
@@ -194,7 +198,11 @@ func parseManifest(text string) (*releaseView, error) {
 	if version == "" {
 		return nil, fmt.Errorf("manifest missing version")
 	}
-	view := &releaseView{Tag: version, Notes: fields["notes"], Source: "website"}
+	channel := strings.TrimSpace(fields["channel"])
+	if channel == "" {
+		channel = "stable"
+	}
+	view := &releaseView{Tag: version, Notes: fields["notes"], Channel: channel, Source: "website"}
 	for _, key := range manifestPlatforms {
 		u := strings.TrimSpace(fields[key])
 		if u == "" {
@@ -243,12 +251,9 @@ func pickLatest(views []*releaseView) *releaseView {
 	return best
 }
 
-// raceLatest 双源探测：官网清单与 GitHub Release 并发拉取，都成功时取版本更新者；
-// 仅一个成功就用那个；都失败返回最后一个错误。
-func raceLatest() (*releaseView, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), updateTotalTimeout)
-	defer cancel()
-
+// probeViews 双源并发探测：官网清单与 GitHub Release 各自拉取，返回所有成功的视图；
+// 仅一个成功就只返回那个；都失败返回最后一个错误。版本取舍交给 pickLatest。
+func probeViews(ctx context.Context) ([]*releaseView, error) {
 	ch := make(chan probeResult, 2)
 	go func() { v, e := webProbe(ctx); ch <- probeResult{v, e} }()
 	go func() { v, e := ghProbe(ctx); ch <- probeResult{v, e} }()
@@ -263,31 +268,53 @@ func raceLatest() (*releaseView, error) {
 		}
 		views = append(views, r.view)
 	}
-	if best := pickLatest(views); best != nil {
-		return best, nil
+	return views, lastErr
+}
+
+// assetPlatformSuffix 当前平台/架构，与清单键一一对应。
+func assetPlatformSuffix() string { return runtime.GOOS + "-" + runtime.GOARCH }
+
+func assetExt() string {
+	if runtime.GOOS == "windows" {
+		return ".exe"
 	}
-	return nil, lastErr
+	return ""
+}
+
+// matchPlatformAsset 资产是否属于当前平台/架构（新旧两种前缀都认）。
+func matchPlatformAsset(a releaseAsset) bool {
+	suffix := assetPlatformSuffix()
+	ext := assetExt()
+	for _, prefix := range []string{"PeerLink-UI-", "VoxLink-UI-"} {
+		want := prefix + suffix + ext
+		if a.Name == want || strings.HasPrefix(a.Name, prefix+suffix) {
+			return true
+		}
+	}
+	return false
 }
 
 // pickAsset 选当前平台/架构对应的 UI 版资产。
 // 新产物命名 PeerLink-UI-*；旧版/回退源仍可能是 VoxLink-UI-*，两种前缀都认。
 func pickAsset(assets []releaseAsset) *releaseAsset {
-	suffix := runtime.GOOS + "-" + runtime.GOARCH
-	ext := ""
-	if runtime.GOOS == "windows" {
-		ext = ".exe"
-	}
-	for _, prefix := range []string{"PeerLink-UI-", "VoxLink-UI-"} {
-		want := prefix + suffix + ext
-		for i := range assets {
-			if assets[i].Name == want {
-				return &assets[i]
-			}
+	for i := range assets {
+		if matchPlatformAsset(assets[i]) {
+			return &assets[i]
 		}
-		// 放宽：同平台同架构的 UI 包（容忍不带 .exe）
-		for i := range assets {
-			if strings.HasPrefix(assets[i].Name, prefix+suffix) {
-				return &assets[i]
+	}
+	return nil
+}
+
+// pickFallbackAsset 在其余成功源里找同平台资产作为下载回退；URL 与主资产相同则跳过。
+func pickFallbackAsset(views []*releaseView, primary *releaseAsset) *releaseAsset {
+	for _, v := range views {
+		for i := range v.Assets {
+			a := v.Assets[i]
+			if primary != nil && a.URL == primary.URL {
+				continue
+			}
+			if matchPlatformAsset(a) {
+				return &v.Assets[i]
 			}
 		}
 	}
@@ -322,22 +349,31 @@ func (a *App) CheckUpdate() string {
 		a.update.mu.Unlock()
 	}()
 
-	view, err := raceLatest()
+	ctx, cancel := context.WithTimeout(context.Background(), updateTotalTimeout)
+	views, err := probeViews(ctx)
+	cancel()
 	info := updateInfo{Current: appVersion, CheckedAt: time.Now().Unix()}
-	if err != nil {
+	// 只要有一个源成功就继续：另一源失败属可接受降级；两源都失败才报错。
+	if len(views) == 0 {
 		info.Error = err.Error()
 		a.update.mu.Lock()
 		a.update.info = info
 		a.update.mu.Unlock()
 		return wrapOK(info)
 	}
-	info.Version = view.Tag
-	info.Notes = view.Notes
-	info.Source = view.Source
-	info.Available = versionNewer(view.Tag, appVersion)
-	if asset := pickAsset(view.Assets); asset != nil {
+	best := pickLatest(views)
+	info.Version = best.Tag
+	info.Notes = best.Notes
+	info.Source = best.Source
+	info.Channel = best.Channel
+	info.Available = versionNewer(best.Tag, appVersion)
+	if asset := pickAsset(best.Assets); asset != nil {
 		info.AssetName = asset.Name
 		info.DownloadURL = asset.URL
+		info.AssetSize = asset.Size
+		if fb := pickFallbackAsset(views, asset); fb != nil {
+			info.FallbackURL = fb.URL
+		}
 	} else if info.Available {
 		info.Error = "发布包缺少当前平台资产(" + runtime.GOOS + "-" + runtime.GOARCH + ")"
 	}
@@ -398,7 +434,7 @@ func (a *App) failUpdate(code string) {
 
 // downloadAndApply 下载 → 校验大小 → 同目录落 .new → 启动替换脚本 → 退出进程。
 func (a *App) downloadAndApply(info updateInfo) {
-	dir, err := os.MkdirTemp("", "voxlink-upd-*")
+	dir, err := os.MkdirTemp("", "peerlink-upd-*")
 	if err != nil {
 		a.failUpdate("TEMP_DIR: " + err.Error())
 		return
@@ -406,7 +442,11 @@ func (a *App) downloadAndApply(info updateInfo) {
 	defer os.RemoveAll(dir)
 
 	dst := filepath.Join(dir, info.AssetName)
-	if err := downloadFile(info.DownloadURL, dst, func(p int) { a.setUpdateProgress(p) }); err != nil {
+	urls := []string{info.DownloadURL}
+	if info.FallbackURL != "" && info.FallbackURL != info.DownloadURL {
+		urls = append(urls, info.FallbackURL)
+	}
+	if err := downloadWithFallback(urls, dst, info.AssetSize, func(p int) { a.setUpdateProgress(p) }); err != nil {
 		a.failUpdate("DOWNLOAD: " + err.Error())
 		return
 	}
@@ -439,7 +479,52 @@ func (a *App) downloadAndApply(info updateInfo) {
 	os.Exit(0)
 }
 
-func downloadFile(url, dst string, onProgress func(int)) error {
+// httpStatusError 非 2xx 响应；4xx 不重试，5xx/429 与网络错误按可重试处理。
+type httpStatusError struct{ status int }
+
+func (e *httpStatusError) Error() string { return fmt.Sprintf("status %d", e.status) }
+
+func isRetryableDownload(err error) bool {
+	var se *httpStatusError
+	if errors.As(err, &se) {
+		return se.status == 429 || se.status >= 500
+	}
+	return true
+}
+
+// downloadWithFallback 依次尝试主/回退 URL；每个 URL 内部对瞬时错误重试一次。
+func downloadWithFallback(urls []string, dst string, expectedSize int64, onProgress func(int)) error {
+	var lastErr error
+	for _, u := range urls {
+		if u == "" {
+			continue
+		}
+		err := downloadFileWithRetry(u, dst, expectedSize, onProgress)
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+		os.Remove(dst)
+	}
+	return lastErr
+}
+
+func downloadFileWithRetry(url, dst string, expectedSize int64, onProgress func(int)) error {
+	var err error
+	for attempt := 0; attempt < 2; attempt++ {
+		err = downloadFile(url, dst, expectedSize, onProgress)
+		if err == nil {
+			return nil
+		}
+		if !isRetryableDownload(err) {
+			return err
+		}
+		os.Remove(dst)
+	}
+	return err
+}
+
+func downloadFile(url, dst string, expectedSize int64, onProgress func(int)) error {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -452,7 +537,7 @@ func downloadFile(url, dst string, onProgress func(int)) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("status %d", resp.StatusCode)
+		return &httpStatusError{status: resp.StatusCode}
 	}
 	total := resp.ContentLength
 	out, err := os.Create(dst)
@@ -486,8 +571,19 @@ func downloadFile(url, dst string, onProgress func(int)) error {
 			return rerr
 		}
 	}
+	return validateDownloadSize(written, total, expectedSize)
+}
+
+// validateDownloadSize 校验落盘字节数：空包拒绝；Content-Length/已知大小不符则拒绝。
+func validateDownloadSize(written, total, expectedSize int64) error {
+	if written == 0 {
+		return fmt.Errorf("下载内容为空")
+	}
 	if total > 0 && written != total {
 		return fmt.Errorf("下载不完整 %d/%d", written, total)
+	}
+	if expectedSize > 0 && written != expectedSize {
+		return fmt.Errorf("大小校验不一致 %d/%d", written, expectedSize)
 	}
 	return nil
 }
@@ -512,7 +608,7 @@ func copyFile(src, dst string) error {
 // scheduleReplaceAndRestart 生成替换脚本并立即启动：等主进程退出后替换再拉起新版本。
 func scheduleReplaceAndRestart(cur, newPath string) error {
 	if runtime.GOOS == "windows" {
-		bat := filepath.Join(filepath.Dir(cur), "voxlink-update.cmd")
+		bat := filepath.Join(filepath.Dir(cur), "peerlink-update.cmd")
 		content := fmt.Sprintf(`@echo off
 chcp 65001 >nul
 :wait
@@ -530,7 +626,7 @@ del "%%~f0"
 		return cmd.Start()
 	}
 	// 非 Windows：就地替换依赖权限，失败时提示手动重装
-	sh := filepath.Join(filepath.Dir(cur), "voxlink-update.sh")
+	sh := filepath.Join(filepath.Dir(cur), "peerlink-update.sh")
 	content := fmt.Sprintf(`#!/bin/sh
 while kill -0 %d 2>/dev/null; do sleep 1; done
 mv -f "%s" "%s"

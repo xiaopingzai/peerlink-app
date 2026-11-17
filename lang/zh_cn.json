@@ -773,6 +773,7 @@
   "voxlink.app.update.notes": "更新说明",
   "voxlink.app.update.no_notes": "本次更新没有额外说明",
   "voxlink.app.update.from": "更新来自 %s",
+  "voxlink.app.update.source_website": "官网",
   "voxlink.app.update.failed": "更新失败：%s",
   "voxlink.app.update.later_toast": "好的，下次启动时再提醒你",
   "voxlink.app.ms.inferred": "已自动识别：%s（可自行修改）",

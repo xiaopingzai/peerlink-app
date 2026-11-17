@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"runtime"
 	"testing"
 )
@@ -137,5 +138,94 @@ func TestPickLatestSingleSource(t *testing.T) {
 func TestPickLatestEmpty(t *testing.T) {
 	if got := pickLatest(nil); got != nil {
 		t.Errorf("无源时应返回 nil, got %+v", got)
+	}
+}
+
+func TestParseManifestChannel(t *testing.T) {
+	body := "version=1.0.2-4\nchannel=beta\nwindows-amd64=https://example.com/x.exe\n"
+	view, err := parseManifest(body)
+	if err != nil {
+		t.Fatalf("parseManifest 返回错误: %v", err)
+	}
+	if view.Channel != "beta" {
+		t.Errorf("Channel = %q, want beta", view.Channel)
+	}
+
+	// 缺省 channel 回落 stable。
+	view2, err := parseManifest("version=1.0.2-4\nwindows-amd64=https://example.com/x.exe\n")
+	if err != nil {
+		t.Fatalf("parseManifest 返回错误: %v", err)
+	}
+	if view2.Channel != "stable" {
+		t.Errorf("缺省 Channel = %q, want stable", view2.Channel)
+	}
+}
+
+func TestPickFallbackAssetAcrossSources(t *testing.T) {
+	suffix := runtime.GOOS + "-" + runtime.GOARCH
+	ext := ""
+	if runtime.GOOS == "windows" {
+		ext = ".exe"
+	}
+	name := "PeerLink-UI-" + suffix + ext
+	views := []*releaseView{
+		{Source: "website", Assets: []releaseAsset{{Name: name, URL: "https://mirror/x"}}},
+		{Source: "github", Assets: []releaseAsset{{Name: name, URL: "https://github/x"}}},
+	}
+	primary := &views[0].Assets[0]
+	fb := pickFallbackAsset(views, primary)
+	if fb == nil {
+		t.Fatal("另一源同平台资产应作为回退")
+	}
+	if fb.URL != "https://github/x" {
+		t.Errorf("回退 URL = %q, want https://github/x", fb.URL)
+	}
+
+	// 两源 URL 相同（镜像与原链一致）时不应重复给回退。
+	same := []*releaseView{
+		{Source: "website", Assets: []releaseAsset{{Name: name, URL: "https://same/x"}}},
+		{Source: "github", Assets: []releaseAsset{{Name: name, URL: "https://same/x"}}},
+	}
+	if got := pickFallbackAsset(same, &same[0].Assets[0]); got != nil {
+		t.Errorf("URL 相同时应无回退, got %+v", got)
+	}
+}
+
+func TestValidateDownloadSize(t *testing.T) {
+	cases := []struct {
+		name        string
+		written     int64
+		total       int64
+		expected    int64
+		wantErr     bool
+	}{
+		{"完整且长度已知", 100, 100, 0, false},
+		{"空包拒绝", 0, 100, 0, true},
+		{"Content-Length 不符", 99, 100, 0, true},
+		{"长度未知但与已知大小一致", 100, 0, 100, false},
+		{"长度未知但与已知大小不符", 90, 0, 100, true},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			err := validateDownloadSize(c.written, c.total, c.expected)
+			if (err != nil) != c.wantErr {
+				t.Errorf("validateDownloadSize(%d,%d,%d) err=%v, wantErr=%v", c.written, c.total, c.expected, err, c.wantErr)
+			}
+		})
+	}
+}
+
+func TestIsRetryableDownload(t *testing.T) {
+	if isRetryableDownload(&httpStatusError{status: 404}) {
+		t.Error("4xx 不应重试")
+	}
+	if !isRetryableDownload(&httpStatusError{status: 500}) {
+		t.Error("5xx 应重试")
+	}
+	if !isRetryableDownload(&httpStatusError{status: 429}) {
+		t.Error("429 应重试")
+	}
+	if !isRetryableDownload(errors.New("connection reset")) {
+		t.Error("网络错误应重试")
 	}
 }
