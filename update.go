@@ -432,35 +432,54 @@ func (a *App) failUpdate(code string) {
 	a.emit("update:failed", map[string]any{"error": code})
 }
 
-// downloadAndApply 下载 → 校验大小 → 同目录落 .new → 启动替换脚本 → 退出进程。
-func (a *App) downloadAndApply(info updateInfo) {
-	dir, err := os.MkdirTemp("", "peerlink-upd-*")
+// cleanUpdateCache 清空更新缓存目录内的残留包（不删目录本身）。
+// 更新包只应在待应用期间留存，上一轮失败/中断留下的损坏包必须清掉。
+func cleanUpdateCache(dir string) {
+	entries, err := os.ReadDir(dir)
 	if err != nil {
+		return
+	}
+	for _, e := range entries {
+		_ = os.RemoveAll(filepath.Join(dir, e.Name()))
+	}
+}
+
+// downloadAndApply 下载 → 校验大小 → 同目录落 .new → 启动替换脚本 → 退出进程。
+// 更新包先落在私有 updates/ 缓存目录，校验通过后复制为当前程序的 .new 副本。
+func (a *App) downloadAndApply(info updateInfo) {
+	updDir := privateUpdatesDir()
+	if err := os.MkdirAll(updDir, 0o755); err != nil {
 		a.failUpdate("TEMP_DIR: " + err.Error())
 		return
 	}
-	defer os.RemoveAll(dir)
+	// 清掉上一轮残留的更新包，避免多版本堆积或损坏包被误用。
+	cleanUpdateCache(updDir)
 
-	dst := filepath.Join(dir, info.AssetName)
+	dst := filepath.Join(updDir, info.AssetName)
 	urls := []string{info.DownloadURL}
 	if info.FallbackURL != "" && info.FallbackURL != info.DownloadURL {
 		urls = append(urls, info.FallbackURL)
 	}
 	if err := downloadWithFallback(urls, dst, info.AssetSize, func(p int) { a.setUpdateProgress(p) }); err != nil {
+		_ = os.Remove(dst)
 		a.failUpdate("DOWNLOAD: " + err.Error())
 		return
 	}
 
 	cur, err := os.Executable()
 	if err != nil {
+		_ = os.Remove(dst)
 		a.failUpdate("EXE_PATH: " + err.Error())
 		return
 	}
 	newPath := cur + ".new"
 	if err := copyFile(dst, newPath); err != nil {
+		_ = os.Remove(dst)
 		a.failUpdate("STAGE: " + err.Error())
 		return
 	}
+	// 新二进制已落到 .new 副本，缓存目录里的原件可清理；替换脚本负责 .new → cur。
+	_ = os.Remove(dst)
 
 	a.setUpdateProgress(100)
 	if err := scheduleReplaceAndRestart(cur, newPath); err != nil {

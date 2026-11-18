@@ -25,7 +25,7 @@ const (
 	ticketMaxTotalByte = 500 << 20
 )
 
-// localTicket 是 voxlink_tickets.json 的一行（存 %APPDATA%/VoxLinkApp/，不出机器）。
+// localTicket 是 voxlink_tickets.json 的一行（存 %APPDATA%/PeerLink/，不出机器）。
 type localTicket struct {
 	ID         string `json:"id"`
 	Secret     string `json:"secret"`

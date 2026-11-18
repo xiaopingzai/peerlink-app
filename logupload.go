@@ -653,7 +653,7 @@ func (a *App) logUploadReadLogTail() []byte {
 	return data
 }
 
-// logUploadLogPath 本端的 logs/latest.log 等价物：<配置目录>/VoxLinkApp/logs/latest.log。
+// logUploadLogPath 本端的 logs/latest.log 等价物：<配置目录>/PeerLink/logs/latest.log。
 // 模组读 Minecraft.getInstance().gameDirectory/logs/latest.log（:505）。本 App 目前不落盘日志
 // （log.Printf 只到 stderr），所以这里先把"读哪里的日志"这一件事按模组同名结构定下来：
 // 交付报告给了把 netLog 同时写入该文件的 hunk，接上后本函数一字不用改就能取到内容；

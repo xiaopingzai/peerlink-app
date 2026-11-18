@@ -12,7 +12,7 @@ package main
 //   - 目录创建失败只 warn，不中断（:23-26）—— 随后写文件自然失败并被 catch
 //
 // 落盘位置：模组写在 Minecraft 的 gameDir/voxlink/ 下；独立客户端没有 gameDirectory，
-// 这里按本仓 modsync 的同一惯例退回应用配置目录（%APPDATA%/VoxLinkApp）下的 voxlink/，
+// 这里按本仓 modsync 的同一惯例退回应用配置目录（%APPDATA%/PeerLink）下的 voxlink/，
 // 见 modsync_env.go:270-282。差异已在交付报告里说明，不是自作主张的语义改动。
 //
 // 重要事实（源码为准，与文档不同）：StunCache.load() 在模组里**没有任何调用点**

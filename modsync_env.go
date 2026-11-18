@@ -16,7 +16,7 @@ package main
 // 没有引入任何"实例框架"：解析顺序、字段、缓存文件位置都在这里收敛。
 //
 // 持久化：不改动 settings.go（其他并行任务的所有权），设置另存一份
-// `<配置目录>/VoxLinkApp/modsync.json`（与 settings.json 同目录，见 settings.go:24-36）。
+// `<配置目录>/PeerLink/modsync.json`（与 settings.json 同目录，见 settings.go:24-36）。
 // 需要把它并进 appSettings 的话见交付报告的 hunk。
 
 import (
@@ -97,7 +97,7 @@ type modSyncState struct {
 	app *App
 	// dir 设置/缓存文件的落盘目录，跟着绑定它的 App.settingsPath 走。
 	// 之前这里恒用 defaultSettingsPath()，于是任何一条 Go 测试只要调一次
-	// SaveModSyncSettings，就会把测试实例写进玩家真实的 %APPDATA%/VoxLinkApp/modsync.json
+	// SaveModSyncSettings，就会把测试实例写进玩家真实的 %APPDATA%/PeerLink/modsync.json
 	// （本轮就是这么翻车的）。绑定 App 时记下目录，派生文件全部落在同一处。
 	dir      string
 	settings modSyncSettings

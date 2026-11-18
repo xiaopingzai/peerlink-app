@@ -10,7 +10,7 @@ import (
 	"unicode/utf8"
 )
 
-// appSettings 持久化设置，存于 %APPDATA%/VoxLinkApp/settings.json。
+// appSettings 持久化设置，存于私有目录 PeerLink/settings.json。
 type appSettings struct {
 	ServerURL string `json:"serverUrl"`
 	Theme     string `json:"theme"`
@@ -70,18 +70,9 @@ func (a *App) relayEnabled() bool {
 	return *a.settings.RelayEnabled
 }
 
-// defaultSettingsPath 返回设置文件路径（基于 os.UserConfigDir，Windows 即 %APPDATA%）。
+// defaultSettingsPath 返回设置文件路径（私有目录 PeerLink/settings.json）。
 func defaultSettingsPath() string {
-	dir, err := os.UserConfigDir()
-	if err != nil {
-		// 兜底：用户目录下
-		home, herr := os.UserHomeDir()
-		if herr != nil {
-			return "VoxLinkApp-settings.json"
-		}
-		dir = home
-	}
-	return filepath.Join(dir, "VoxLinkApp", "settings.json")
+	return privateSettingsPath()
 }
 
 // loadSettings 从磁盘加载设置，缺失/损坏时回落默认值。
@@ -89,6 +80,15 @@ func defaultSettingsPath() string {
 func (a *App) loadSettings() {
 	s := defaultSettings()
 	data, err := os.ReadFile(a.settingsPath)
+	if err != nil {
+		// 首次从旧品牌目录升级：新位置还没有设置文件时，读取旧 VoxLinkApp/
+		// 下的设置兜底；不回写旧文件，下次保存自然落到新私有目录。
+		if legacy := legacySettingsPath(); legacy != "" {
+			if ldata, lerr := os.ReadFile(legacy); lerr == nil {
+				data, err = ldata, nil
+			}
+		}
+	}
 	if err == nil {
 		_ = json.Unmarshal(data, &s)
 	}
