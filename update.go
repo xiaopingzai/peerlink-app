@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -30,9 +31,15 @@ const (
 	// 官网更新清单（INI 式 update.txt）。优先探测该源，GitHub Release 作为回退。
 	updateManifestURL = "https://xpz.fwh.is/peerlink-website/update.txt"
 
+	// 发布资产镜像加速前缀：拼在 GitHub 下载链接前（与官网 update.txt / config.php 同一规则）。
+	updateMirrorPrefix = "https://git.tangbai.cc/"
+
 	// 探测窗口
 	updateTotalTimeout    = 8 * time.Second
 	updateDownloadTimeout = 30 * time.Minute
+	// 响应头（首包）等待上限：超过即判定该源慢/不可用，切下一候选；
+	// 整体下载超时仍由 updateDownloadTimeout 兜底。
+	updateHeaderTimeout = 15 * time.Second
 )
 
 // updateInfo 检查结果，透传给前端。
@@ -217,6 +224,61 @@ func parseManifest(text string) (*releaseView, error) {
 	return view, nil
 }
 
+// ---- 更新说明 Markdown 规整为纯文本 ----
+// 弹窗前端用 textContent 渲染、不解析 Markdown；GitHub 源的 Release body 是
+// Markdown，不清洗会把 ##、**、链接等标记裸露给玩家。官网清单 notes 本就是
+// 纯文本，下面的处理对其幂等。
+
+var (
+	reNotesDivider = regexp.MustCompile(`(?i)^\s*(-{3,}|\*{3,}|_{3,})\s*$`)
+	reNotesHeading = regexp.MustCompile(`^\s{0,3}#{1,6}\s+`)
+	reNotesQuote   = regexp.MustCompile(`^\s*>\s?`)
+	reNotesULItem  = regexp.MustCompile(`^(\s*)[-*+]\s+`)
+	reNotesOLItem  = regexp.MustCompile(`^(\s*)\d+[.)]\s+`)
+	reNotesImage   = regexp.MustCompile(`!\[([^\]]*)\]\([^)]*\)`)
+	reNotesLink    = regexp.MustCompile(`\[([^\]]*)\]\([^)]*\)`)
+)
+
+// cleanReleaseNotes 把轻量 Markdown 更新说明规整为可直接展示的纯文本。
+func cleanReleaseNotes(md string) string {
+	if strings.TrimSpace(md) == "" {
+		return ""
+	}
+	var lines []string
+	for _, raw := range strings.Split(md, "\n") {
+		if reNotesDivider.MatchString(raw) {
+			continue
+		}
+		line := reNotesHeading.ReplaceAllString(raw, "")
+		line = reNotesQuote.ReplaceAllString(line, "")
+		line = reNotesULItem.ReplaceAllString(line, "$1· ")
+		line = reNotesOLItem.ReplaceAllString(line, "$1· ")
+		line = reNotesImage.ReplaceAllString(line, "$1")
+		line = reNotesLink.ReplaceAllString(line, "$1")
+		line = strings.ReplaceAll(line, "`", "")
+		line = strings.ReplaceAll(line, "**", "")
+		line = strings.ReplaceAll(line, "__", "")
+		// 单个 * / _ 保留：避免把 PeerLink-UI-* 这类平台通配符误删；
+		// 成对斜体在更新说明里极少使用，残留星号可接受。
+		lines = append(lines, strings.TrimRight(line, " \t"))
+	}
+	// 压缩连续空行，去掉首尾空白。
+	var out []string
+	blank := false
+	for _, l := range lines {
+		if strings.TrimSpace(l) == "" {
+			if !blank {
+				out = append(out, "")
+			}
+			blank = true
+			continue
+		}
+		blank = false
+		out = append(out, l)
+	}
+	return strings.TrimSpace(strings.Join(out, "\n"))
+}
+
 // webProbe 拉取官网更新清单并解析。
 func webProbe(ctx context.Context) (*releaseView, error) {
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, updateManifestURL, nil)
@@ -321,6 +383,47 @@ func pickFallbackAsset(views []*releaseView, primary *releaseAsset) *releaseAsse
 	return nil
 }
 
+// deriveMirrorURL 把 GitHub Release 下载链接派生为镜像加速链接；
+// 非 GitHub 链接或已是镜像前缀时返回空串。镜像规则：前缀 + 原始完整链接。
+func deriveMirrorURL(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	if strings.HasPrefix(raw, updateMirrorPrefix) {
+		return "" // 已是镜像，不重复派生
+	}
+	if !strings.Contains(raw, "github.com/") {
+		return ""
+	}
+	return updateMirrorPrefix + raw
+}
+
+// buildDownloadURLs 组装下载候选：镜像在前、原始链兜底，按出现顺序去重、去空串。
+// 官网清单不可达导致只有 GitHub 单源时，也由原链补出镜像候选，不至于卡在直链上。
+func buildDownloadURLs(primary, fallback string) []string {
+	var mirrors, originals []string
+	add := func(list *[]string, u string) {
+		u = strings.TrimSpace(u)
+		if u == "" {
+			return
+		}
+		for _, exist := range *list {
+			if exist == u {
+				return
+			}
+		}
+		*list = append(*list, u)
+	}
+	for _, u := range []string{primary, fallback} {
+		add(&originals, u)
+		if m := deriveMirrorURL(u); m != "" {
+			add(&mirrors, m)
+		}
+	}
+	return append(mirrors, originals...)
+}
+
 // ---------- App 侧入口 ----------
 
 // autoUpdateEnabled 自动更新检测开关（默认开）
@@ -363,7 +466,7 @@ func (a *App) CheckUpdate() string {
 	}
 	best := pickLatest(views)
 	info.Version = best.Tag
-	info.Notes = best.Notes
+	info.Notes = cleanReleaseNotes(best.Notes)
 	info.Source = best.Source
 	info.Channel = best.Channel
 	info.Available = versionNewer(best.Tag, appVersion)
@@ -456,10 +559,7 @@ func (a *App) downloadAndApply(info updateInfo) {
 	cleanUpdateCache(updDir)
 
 	dst := filepath.Join(updDir, info.AssetName)
-	urls := []string{info.DownloadURL}
-	if info.FallbackURL != "" && info.FallbackURL != info.DownloadURL {
-		urls = append(urls, info.FallbackURL)
-	}
+	urls := buildDownloadURLs(info.DownloadURL, info.FallbackURL)
 	if err := downloadWithFallback(urls, dst, info.AssetSize, func(p int) { a.setUpdateProgress(p) }); err != nil {
 		_ = os.Remove(dst)
 		a.failUpdate("DOWNLOAD: " + err.Error())
@@ -549,7 +649,11 @@ func downloadFile(url, dst string, expectedSize int64, onProgress func(int)) err
 		return err
 	}
 	req.Header.Set("User-Agent", httpUserAgent)
-	client := &http.Client{Timeout: updateDownloadTimeout}
+	transport := &http.Transport{
+		Proxy:                 http.ProxyFromEnvironment,
+		ResponseHeaderTimeout: updateHeaderTimeout,
+	}
+	client := &http.Client{Timeout: updateDownloadTimeout, Transport: transport}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err

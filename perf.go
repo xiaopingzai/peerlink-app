@@ -13,8 +13,9 @@ const (
 	perfTierFull     = "full"     // 优先吞吐：放宽堆上限、减少 GC 次数（内存占用更高）
 )
 
-// lowMemoryThreshold 整机总内存低于该值（1 GiB）时，auto 档自动落到 light。
-const lowMemoryThreshold = 1024 * 1024 * 1024
+// lightMaxMemory 整机总内存不超过该值（2 GiB）时，auto 档自动走低内存优先档；
+// 1G 及老内存机器都按最小占用处理，内存更充裕的设备才用均衡档。
+const lightMaxMemory = 2 * 1024 * 1024 * 1024
 
 // perfTiers 设置页可选项（含 auto）。
 var perfTiers = []string{perfTierAuto, perfTierLight, perfTierBalanced, perfTierFull}
@@ -34,7 +35,7 @@ func resolvePerfTier(saved string, totalMem uint64) string {
 	if saved != "" && saved != perfTierAuto && validPerfTier(saved) {
 		return saved
 	}
-	if totalMem > 0 && totalMem < lowMemoryThreshold {
+	if totalMem > 0 && totalMem <= lightMaxMemory {
 		return perfTierLight
 	}
 	return perfTierBalanced
@@ -57,6 +58,11 @@ func gogcForTier(tier string) int {
 func applyPerfTier(saved string) string {
 	resolved := resolvePerfTier(saved, systemTotalMemory())
 	debug.SetGCPercent(gogcForTier(resolved))
+	if resolved == perfTierLight {
+		// 小内存设备启动时主动回收一次，并把空闲堆内存还给系统，压低常驻占用。
+		runtime.GC()
+		debug.FreeOSMemory()
+	}
 	return resolved
 }
 

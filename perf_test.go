@@ -15,7 +15,10 @@ func TestResolvePerfTier(t *testing.T) {
 	}{
 		{"auto 未知内存回落 balanced", perfTierAuto, 0, perfTierBalanced},
 		{"auto 512MB 低内存落 light", perfTierAuto, 512 * 1024 * 1024, perfTierLight},
-		{"auto 恰好 1GiB 不算低内存", perfTierAuto, oneGiB, perfTierBalanced},
+		{"auto 1GiB 落最小档 light", perfTierAuto, oneGiB, perfTierLight},
+		{"auto 1.5GiB 落 light", perfTierAuto, 3 * oneGiB / 2, perfTierLight},
+		{"auto 恰好 2GiB 落 light", perfTierAuto, 2 * oneGiB, perfTierLight},
+		{"auto 3GiB 落 balanced", perfTierAuto, 3 * oneGiB, perfTierBalanced},
 		{"auto 4GB 落 balanced", perfTierAuto, 4 * oneGiB, perfTierBalanced},
 		{"显式 light 不被大内存覆盖", perfTierLight, 4 * oneGiB, perfTierLight},
 		{"显式 full 不被小内存降级", perfTierFull, 512 * 1024 * 1024, perfTierFull},
